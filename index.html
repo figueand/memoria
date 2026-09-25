@@ -61,7 +61,39 @@
   .game-card .emoji{font-size:2.4rem; flex:0 0 auto;}
   .game-card .txt strong{display:block; font-size:1.25rem; margin-bottom:4px;}
   .game-card .txt span{color:var(--ink-soft); font-size:1rem;}
+  .game-card .txt .benefit{
+    display:inline-block; margin-top:6px; font-size:.85rem; color:var(--teal-dark);
+    background:var(--bg); border:1px solid var(--line); border-radius:20px; padding:3px 10px;
+  }
 
+  .a11y-bar{
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px;
+    margin-top:14px; font-size:.95rem; color:var(--ink-soft);
+  }
+  .a11y-bar .sep{opacity:.4;}
+  .a11y-btn, .level-btn{
+    background:var(--card); border:2px solid var(--line); color:var(--ink);
+    border-radius:10px; padding:6px 12px; font-family:inherit; font-weight:700;
+    font-size:1rem; cursor:pointer;
+  }
+  .level-btn.active{background:var(--teal); border-color:var(--teal); color:#fff;}
+  .tts-btn{
+    background:var(--card); border:2px solid var(--teal); color:var(--teal-dark);
+    border-radius:12px; padding:8px 16px; font-family:inherit; font-size:1rem;
+    cursor:pointer; display:block; margin:0 auto 10px;
+  }
+  .stats-link{
+    display:block; width:100%; margin-top:14px; background:none; border:2px dashed var(--line);
+    color:var(--ink-soft); border-radius:14px; padding:14px; font-family:inherit;
+    font-size:1.05rem; cursor:pointer;
+  }
+  .prog-row{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    background:var(--bg); border:2px solid var(--line); border-radius:12px;
+    padding:12px 16px; margin-bottom:10px;
+  }
+  .prog-row strong{font-size:1.05rem;}
+  .prog-row span{color:var(--teal-dark); font-weight:700; white-space:nowrap;}
   .backbtn{
     background:none; border:2px solid var(--line); color:var(--ink);
     border-radius:12px; padding:10px 18px; font-size:1.05rem; font-family:inherit;
@@ -103,6 +135,49 @@
   .final{text-align:center;}
   .final .big{font-size:3rem; margin:10px 0;}
 
+  /* Secuencia de colores */
+  .simon-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; max-width:340px; margin:20px auto;}
+  .simon-tile{
+    aspect-ratio:1; border:none; border-radius:16px; cursor:pointer; opacity:.55;
+    transition:opacity .15s, transform .1s;
+  }
+  .simon-tile.lit{opacity:1; transform:scale(0.97);}
+  .simon-tile:disabled{cursor:default;}
+  .simon-tile.t0{background:#2A6F6F;} .simon-tile.t1{background:#E1795A;}
+  .simon-tile.t2{background:#D9A441;} .simon-tile.t3{background:#7A5CC0;}
+
+  /* Ordená los pasos */
+  .pasos-list{list-style:none; margin:18px 0; padding:0; display:flex; flex-direction:column; gap:10px;}
+  .pasos-item{
+    display:flex; align-items:center; gap:12px; background:var(--bg);
+    border:2px solid var(--line); border-radius:14px; padding:12px 14px;
+  }
+  .pasos-item.ok{border-color:var(--good);}
+  .pasos-item.no{border-color:var(--bad);}
+  .pasos-item span.txt{flex:1; font-size:1.05rem;}
+  .pasos-item .move{
+    background:var(--card); border:2px solid var(--line); border-radius:10px;
+    width:42px; height:42px; font-size:1.1rem; cursor:pointer; color:var(--ink);
+  }
+  .pasos-item .move:disabled{opacity:.3; cursor:default;}
+
+  /* Certificado */
+  #certificado input{
+    width:100%; font-family:inherit; font-size:1.15rem; padding:12px 14px;
+    border:2px solid var(--line); border-radius:12px; margin:14px 0; color:var(--ink); background:var(--card);
+  }
+  .diploma{
+    border:3px solid var(--teal); border-radius:16px; padding:34px 24px; text-align:center;
+    margin-top:20px; background:var(--bg);
+  }
+  .diploma .cap{color:var(--ink-soft); letter-spacing:.04em; font-size:1rem;}
+  .diploma .name{font-size:1.8rem; color:var(--teal-dark); font-weight:700; margin:10px 0;}
+  .diploma .sub{color:var(--ink-soft); font-size:1rem;}
+  @media print{
+    header.top, .backbtn, #cert-form, details.guide{display:none !important;}
+    body{background:#fff;}
+  }
+
   @media (max-width:480px){
     body{font-size:18px;}
     .mem-grid{grid-template-columns:repeat(3,1fr); gap:9px;}
@@ -116,6 +191,15 @@
   <header class="top">
     <h1>Mente Activa</h1>
     <p>Juegos simples para ejercitar la memoria y la atención</p>
+    <div class="a11y-bar">
+      <span>Tamaño de letra:</span>
+      <button class="a11y-btn" onclick="changeFontSize(-1)" aria-label="Achicar letra">A−</button>
+      <button class="a11y-btn" onclick="changeFontSize(1)" aria-label="Agrandar letra">A+</button>
+      <span class="sep">|</span>
+      <span>Nivel:</span>
+      <button class="level-btn" id="lvl-facil" onclick="setLevel('facil')">Fácil</button>
+      <button class="level-btn" id="lvl-normal" onclick="setLevel('normal')">Normal</button>
+    </div>
   </header>
 
   <!-- MENU -->
@@ -136,6 +220,7 @@
       </ol>
     </details>
     <div class="menu-grid" id="menu-grid"></div>
+    <button class="stats-link" onclick="showScreen('progreso'); renderProgreso();">📊 Ver mis progresos guardados</button>
   </section>
 
   <!-- MEMORIA -->
@@ -155,8 +240,61 @@
       <h2 id="quiz-title"></h2>
       <div class="status" id="quiz-status"></div>
       <div class="quiz-prompt" id="quiz-prompt"></div>
+      <button class="tts-btn" onclick="leerPregunta()">🔊 Escuchar la pregunta</button>
       <div class="opt-grid" id="quiz-opts"></div>
       <div class="feedback" id="quiz-feedback"></div>
+    </div>
+  </section>
+
+  <!-- MIS PROGRESOS -->
+  <section id="progreso" class="screen">
+    <button class="backbtn" onclick="showScreen('menu')">← Volver al menú</button>
+    <div class="panel">
+      <h2>Mis Progresos</h2>
+      <div class="status">Estadísticas guardadas en este dispositivo, juego por juego.</div>
+      <div id="progreso-list"></div>
+      <button class="btn" style="background:var(--coral); margin-top:10px;" onclick="resetProgreso()">Borrar progresos</button>
+    </div>
+  </section>
+  <!-- SECUENCIA DE COLORES -->
+  <section id="simon" class="screen">
+    <button class="backbtn" onclick="showScreen('menu')">← Volver al menú</button>
+    <div class="panel">
+      <h2>Secuencia de Colores</h2>
+      <div class="status" id="simon-status">Mirá la secuencia y luego repetila tocando los mismos colores, en el mismo orden.</div>
+      <div class="simon-grid" id="simon-grid"></div>
+      <button class="btn" id="simon-start" onclick="simonStart()">Empezar</button>
+    </div>
+  </section>
+
+  <!-- ORDENA LOS PASOS -->
+  <section id="pasos" class="screen">
+    <button class="backbtn" onclick="showScreen('menu')">← Volver al menú</button>
+    <div class="panel">
+      <h2>Ordená los Pasos</h2>
+      <div class="status" id="pasos-status"></div>
+      <ol class="pasos-list" id="pasos-list"></ol>
+      <button class="btn" id="pasos-check" onclick="checkPasos()">Verificar orden</button>
+    </div>
+  </section>
+
+  <!-- CERTIFICADO -->
+  <section id="certificado" class="screen">
+    <button class="backbtn" onclick="showScreen('menu')">← Volver al menú</button>
+    <div class="panel">
+      <h2>Certificado de Participación</h2>
+      <div id="cert-form">
+        <div class="status">Escribí el nombre del participante y generá su diploma para imprimir.</div>
+        <input type="text" id="cert-name" placeholder="Nombre del participante">
+        <button class="btn" onclick="generarCertificado()">Generar certificado</button>
+      </div>
+      <div class="diploma" id="diploma" style="display:none;">
+        <div class="cap">Certificado de Participación</div>
+        <div class="name" id="diploma-name"></div>
+        <div class="sub">Completó las actividades de Mente Activa</div>
+        <div class="sub" id="diploma-date"></div>
+      </div>
+      <button class="btn" id="print-btn" style="display:none; margin-top:14px;" onclick="window.print()">Imprimir</button>
     </div>
   </section>
 </div>
@@ -175,11 +313,79 @@ function shuffle(arr){
 }
 function sample(arr,n){ return shuffle([...arr]).slice(0,n); }
 
+/* ---------- ACCESIBILIDAD Y NIVEL ---------- */
+let fontStep = 0, appLevel = 'normal';
+function changeFontSize(d){
+  fontStep = Math.max(-2, Math.min(3, fontStep+d));
+  document.body.style.fontSize = (20 + fontStep*3) + 'px';
+  try{ localStorage.setItem('ma_fontStep', fontStep); }catch(e){}
+}
+function setLevel(l){
+  appLevel = l;
+  const f = document.getElementById('lvl-facil'), n = document.getElementById('lvl-normal');
+  if(f && n){ f.classList.toggle('active', l==='facil'); n.classList.toggle('active', l==='normal'); }
+  try{ localStorage.setItem('ma_level', l); }catch(e){}
+}
+(function initA11y(){
+  try{
+    const sf = parseInt(localStorage.getItem('ma_fontStep'), 10);
+    if(!isNaN(sf)){ fontStep = sf; document.body.style.fontSize = (20+sf*3)+'px'; }
+    setLevel(localStorage.getItem('ma_level') === 'facil' ? 'facil' : 'normal');
+  }catch(e){ setLevel('normal'); }
+})();
+function leerPregunta(){
+  try{
+    const item = quizState.qs[quizState.q];
+    if(!item || !('speechSynthesis' in window)) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(item.prompt + '. Opciones: ' + item.opts.join(', '));
+    u.lang = 'es-AR'; u.rate = 0.9;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* ---------- PROGRESOS ---------- */
+const progLabels = {memoria:'Memoria', calculo:'Cálculo Mental', refranes:'Completá el Dicho',
+  antonimos:'Opuestos', secuencias:'Secuencias', intruso:'Encontrá el Intruso',
+  anagramas:'Ordená las Letras', trivia:'Sabías que…', colores:'Secuencia de Colores'};
+function recordResult(key, score, total){
+  try{
+    const raw = localStorage.getItem('ma_stats');
+    const stats = raw ? JSON.parse(raw) : {};
+    if(!stats[key]) stats[key] = {jugadas:0, mejor:0, total:total};
+    stats[key].jugadas++;
+    stats[key].total = total;
+    if(score > stats[key].mejor) stats[key].mejor = score;
+    localStorage.setItem('ma_stats', JSON.stringify(stats));
+  }catch(e){}
+}
+function renderProgreso(){
+  const el = document.getElementById('progreso-list');
+  let stats = {};
+  try{ stats = JSON.parse(localStorage.getItem('ma_stats') || '{}'); }catch(e){}
+  const keys = Object.keys(stats);
+  if(keys.length === 0){
+    el.innerHTML = '<p>Todavía no jugaste ninguna ronda completa. ¡Animate a probar un juego!</p>';
+    return;
+  }
+  el.innerHTML = keys.map(k=>{
+    const s = stats[k];
+    const label = progLabels[k] || k;
+    return `<div class="prog-row"><strong>${label}</strong><span>Mejor: ${s.mejor}/${s.total} · Jugado ${s.jugadas} ${s.jugadas===1?'vez':'veces'}</span></div>`;
+  }).join('');
+}
+function resetProgreso(){
+  try{ localStorage.removeItem('ma_stats'); }catch(e){}
+  renderProgreso();
+}
+
 /* ---------- MEMORIA ---------- */
 function initMemoria(){
-  const symbols = ['🌻','🐦','⚽','🍎','☕','🎵','🌙','🐝'];
+  const allSymbols = ['🌻','🐦','⚽','🍎','☕','🎵','🌙','🐝','🍓','🐱'];
+  const symbols = appLevel==='facil' ? allSymbols.slice(0,6) : allSymbols.slice(0,8);
   let deck = shuffle([...symbols, ...symbols]);
   const grid = document.getElementById('mem-grid');
+  grid.style.gridTemplateColumns = appLevel==='facil' ? 'repeat(3,1fr)' : 'repeat(4,1fr)';
   grid.innerHTML = '';
   let first=null, second=null, lock=false, matches=0;
   document.getElementById('mem-status').textContent = 'Tocá dos cartas para ver si son iguales.';
@@ -198,6 +404,7 @@ function initMemoria(){
         matches++; first=null; second=null; lock=false;
         if(matches === symbols.length){
           document.getElementById('mem-status').textContent = '¡Felicitaciones! Encontraste todas las parejas 🎉';
+          recordResult('memoria', matches, symbols.length);
         }
       } else {
         setTimeout(()=>{
@@ -222,7 +429,10 @@ const refranesBank = [
   {p:'Al mal tiempo', c:'buena cara', d:['buen paraguas','mala suerte','tormenta segura']},
   {p:'Quien mucho abarca', c:'poco aprieta', d:['todo lo gana','nada suelta','triunfa siempre']},
   {p:'Camarón que se duerme', c:'se lo lleva la corriente', d:['se despierta feliz','nada más rápido','vuelve a nacer']},
-  {p:'No por mucho madrugar', c:'amanece más temprano', d:['se descansa mejor','se llega más lejos','se gana más dinero']}
+  {p:'No por mucho madrugar', c:'amanece más temprano', d:['se descansa mejor','se llega más lejos','se gana más dinero']},
+  {p:'Dime con quién andas', c:'y te diré quién eres', d:['y te acompañaré','y seremos amigos','y viajaremos juntos']},
+  {p:'A palabras necias', c:'oídos sordos', d:['respuestas rápidas','buenas maneras','silencio eterno']},
+  {p:'El que a buen árbol se arrima', c:'buena sombra le cobija', d:['buena fruta recoge','se cansa menos','crece más alto']}
 ];
 const antonimosBank = [
   {w:'grande', c:'chico', d:['alto','rápido','contento']},
@@ -256,7 +466,10 @@ const triviaBank = [
   {q:'¿Cuántos colores tiene el arcoíris?', c:'7', d:['5','6','9']},
   {q:'¿En qué estación hace más frío?', c:'Invierno', d:['Verano','Primavera','Otoño']},
   {q:'¿Cuántas horas tiene un día?', c:'24', d:['12','20','30']},
-  {q:'¿Qué animal dice "muu"?', c:'La vaca', d:['El perro','El gato','El caballo']}
+  {q:'¿Qué animal dice "muu"?', c:'La vaca', d:['El perro','El gato','El caballo']},
+  {q:'¿Cuántos minutos tiene una hora?', c:'60', d:['30','100','24']},
+  {q:'¿En qué mes se celebra la Navidad?', c:'Diciembre', d:['Enero','Octubre','Julio']},
+  {q:'¿Cuál es el primer día de la semana en el calendario argentino?', c:'Lunes', d:['Domingo','Sábado','Viernes']}
 ];
 const anagramBank = [
   {w:'CASA', d:['COSA','SACO','VASO']},
@@ -279,20 +492,25 @@ const intrusoBank = [
   {w:['GUITARRA','PIANO','VIOLÍN','MARTILLO'], i:'MARTILLO'}
 ];
 
+function qCount(){ return appLevel==='facil' ? 4 : 6; }
 function toQ(prompt, correct, distractors){
-  const opts = shuffle([correct, ...distractors]);
+  const maxD = appLevel==='facil' ? 1 : 3;
+  const opts = shuffle([correct, ...sample(distractors, Math.min(maxD, distractors.length))]);
   return {prompt, opts, answer: opts.indexOf(correct)};
 }
 function buildCalculo(){
   const qs = [];
-  for(let i=0;i<5;i++){
-    const a = Math.floor(Math.random()*15)+1;
-    const b = Math.floor(Math.random()*15)+1;
+  const n = qCount();
+  const topLimit = appLevel==='facil' ? 10 : 20;
+  for(let i=0;i<n;i++){
+    const a = Math.floor(Math.random()*topLimit)+1;
+    const b = Math.floor(Math.random()*topLimit)+1;
     const isAdd = Math.random() > 0.4;
     const answer = isAdd ? a+b : Math.max(a,b)-Math.min(a,b);
     const text = (isAdd ? `${a} + ${b}` : `${Math.max(a,b)} - ${Math.min(a,b)}`) + ' = ?';
+    const wanted = appLevel==='facil' ? 2 : 4;
     const opts = new Set([answer]);
-    while(opts.size < 4){
+    while(opts.size < wanted){
       const cand = answer + Math.floor(Math.random()*7)-3;
       if(cand >= 0 && cand !== answer) opts.add(cand);
     }
@@ -302,19 +520,19 @@ function buildCalculo(){
   return qs;
 }
 function buildRefranes(){
-  return sample(refranesBank,5).map(x=>toQ(x.p+'…', x.c, x.d));
+  return sample(refranesBank,qCount()).map(x=>toQ(x.p+'…', x.c, x.d));
 }
 function buildAntonimos(){
-  return sample(antonimosBank,5).map(x=>toQ(`¿Cuál es el opuesto de "${x.w}"?`, x.c, x.d));
+  return sample(antonimosBank,qCount()).map(x=>toQ(`¿Cuál es el opuesto de "${x.w}"?`, x.c, x.d));
 }
 function buildSecuencias(){
-  return sample(secuenciasBank,5).map(x=>toQ(x.seq.join(', ')+', ¿qué número sigue?', String(x.c), x.d.map(String)));
+  return sample(secuenciasBank,qCount()).map(x=>toQ(x.seq.join(', ')+', ¿qué número sigue?', String(x.c), x.d.map(String)));
 }
 function buildTrivia(){
-  return sample(triviaBank,5).map(x=>toQ(x.q, x.c, x.d));
+  return sample(triviaBank,qCount()).map(x=>toQ(x.q, x.c, x.d));
 }
 function buildAnagramas(){
-  return sample(anagramBank,5).map(x=>{
+  return sample(anagramBank,qCount()).map(x=>{
     let scrambled;
     do{ scrambled = shuffle(x.w.split('')).join(''); } while(scrambled === x.w);
     return toQ('Ordená las letras: '+scrambled.split('').join(' '), x.w, x.d);
@@ -322,10 +540,141 @@ function buildAnagramas(){
 }
 
 function buildIntruso(){
-  return sample(intrusoBank,5).map(x=>{
-    const opts = shuffle([...x.w]);
+  return sample(intrusoBank,qCount()).map(x=>{
+    const opts = appLevel==='facil' ? shuffle([x.i, ...sample(x.w.filter(w=>w!==x.i),2)]) : shuffle([...x.w]);
     return {prompt:'¿Cuál de estas palabras no pertenece al grupo?', opts, answer: opts.indexOf(x.i)};
   });
+}
+
+const pasosBank = [
+  {t:'Preparar café', steps:['Poner agua a calentar','Colocar el café en el filtro','Verter el agua caliente','Servir en la taza']},
+  {t:'Lavarse las manos', steps:['Abrir la canilla','Poner jabón','Frotar las manos','Enjuagar y secar']},
+  {t:'Enviar una carta', steps:['Escribir la carta','Meterla en el sobre','Pegar la estampilla','Llevarla al correo']},
+  {t:'Plantar una semilla', steps:['Preparar la tierra','Hacer un pozo','Colocar la semilla','Regar']},
+  {t:'Hacer la cama', steps:['Sacudir las sábanas','Estirar la sábana','Poner la colcha','Acomodar las almohadas']}
+];
+let pasosState = {task:null, order:[]};
+function initPasos(){
+  const task = pasosBank[Math.floor(Math.random()*pasosBank.length)];
+  let order;
+  do{ order = shuffle([...task.steps]); } while(order.join()===task.steps.join());
+  pasosState = {task, order};
+  document.getElementById('pasos-status').textContent = `Tarea: ${task.t}. Usá las flechas para ordenar los pasos correctamente.`;
+  renderPasos();
+}
+function renderPasos(){
+  const list = document.getElementById('pasos-list');
+  list.innerHTML = '';
+  pasosState.order.forEach((txt, i)=>{
+    const li = document.createElement('li');
+    li.className = 'pasos-item';
+    li.innerHTML = `<button class="move" ${i===0?'disabled':''} onclick="movePaso(${i},-1)">▲</button>
+      <button class="move" ${i===pasosState.order.length-1?'disabled':''} onclick="movePaso(${i},1)">▼</button>
+      <span class="txt">${txt}</span>`;
+    list.appendChild(li);
+  });
+}
+function movePaso(i, dir){
+  const o = pasosState.order;
+  const j = i+dir;
+  [o[i], o[j]] = [o[j], o[i]];
+  renderPasos();
+}
+function checkPasos(){
+  const items = document.querySelectorAll('#pasos-list .pasos-item');
+  let allOk = true;
+  pasosState.order.forEach((txt, i)=>{
+    const ok = txt === pasosState.task.steps[i];
+    items[i].classList.remove('ok','no');
+    items[i].classList.add(ok ? 'ok' : 'no');
+    if(!ok) allOk = false;
+  });
+  document.getElementById('pasos-status').textContent = allOk
+    ? '¡Perfecto, ese es el orden correcto! Tocá "Verificar orden" de nuevo para otra tarea.'
+    : 'Todavía no está en orden. Los pasos en verde están bien ubicados.';
+  if(allOk){
+    document.getElementById('pasos-check').textContent = 'Otra tarea';
+    document.getElementById('pasos-check').onclick = ()=>{ initPasos(); document.getElementById('pasos-check').textContent='Verificar orden'; document.getElementById('pasos-check').onclick=checkPasos; };
+  }
+}
+
+/* ---------- SECUENCIA DE COLORES (SIMON) ---------- */
+let simonState = {seq:[], step:0, round:0, playing:false};
+function simonRenderTiles(){
+  const grid = document.getElementById('simon-grid');
+  grid.innerHTML = '';
+  for(let i=0;i<4;i++){
+    const b = document.createElement('button');
+    b.className = 'simon-tile t'+i;
+    b.disabled = true;
+    b.onclick = ()=> simonHandleClick(i);
+    grid.appendChild(b);
+  }
+}
+simonRenderTiles();
+function simonStart(){
+  simonState = {seq:[Math.floor(Math.random()*4)], step:0, round:1, playing:true};
+  document.getElementById('simon-start').style.display='none';
+  simonPlaySequence();
+}
+function simonPlaySequence(){
+  document.getElementById('simon-status').textContent = `Ronda ${simonState.round}. Mirá bien la secuencia…`;
+  const tiles = document.querySelectorAll('.simon-tile');
+  tiles.forEach(t=>t.disabled=true);
+  let i = 0;
+  const speed = appLevel==='facil' ? 1000 : 700;
+  const timer = setInterval(()=>{
+    tiles.forEach(t=>t.classList.remove('lit'));
+    if(i > 0) tiles[simonState.seq[i-1]].classList.remove('lit');
+    if(i === simonState.seq.length){
+      clearInterval(timer);
+      simonState.step = 0;
+      tiles.forEach(t=>t.disabled=false);
+      document.getElementById('simon-status').textContent = 'Ahora repetí la secuencia tocando los colores en orden.';
+      return;
+    }
+    tiles[simonState.seq[i]].classList.add('lit');
+    setTimeout(()=>tiles[simonState.seq[i]].classList.remove('lit'), speed-200);
+    i++;
+  }, speed);
+}
+function simonHandleClick(i){
+  if(!simonState.playing) return;
+  if(i === simonState.seq[simonState.step]){
+    simonState.step++;
+    if(simonState.step === simonState.seq.length){
+      const maxRounds = appLevel==='facil' ? 6 : 8;
+      if(simonState.round >= maxRounds){
+        document.getElementById('simon-status').textContent = `¡Excelente memoria! Completaste las ${maxRounds} rondas 🎉`;
+        recordResult('colores', maxRounds, maxRounds);
+        simonState.playing = false;
+        document.getElementById('simon-start').style.display='block';
+        document.getElementById('simon-start').textContent='Jugar de nuevo';
+        document.getElementById('simon-start').onclick = simonStart;
+        return;
+      }
+      simonState.round++;
+      simonState.seq.push(Math.floor(Math.random()*4));
+      setTimeout(simonPlaySequence, 700);
+    }
+  } else {
+    document.getElementById('simon-status').textContent = `Llegaste a la ronda ${simonState.round}. ¡Probá de nuevo!`;
+    recordResult('colores', simonState.round-1, appLevel==='facil'?6:8);
+    simonState.playing = false;
+    document.querySelectorAll('.simon-tile').forEach(t=>t.disabled=true);
+    document.getElementById('simon-start').style.display='block';
+    document.getElementById('simon-start').textContent='Jugar de nuevo';
+    document.getElementById('simon-start').onclick = simonStart;
+  }
+}
+
+/* ---------- CERTIFICADO ---------- */
+function generarCertificado(){
+  const name = document.getElementById('cert-name').value.trim() || 'Participante';
+  document.getElementById('diploma-name').textContent = name;
+  document.getElementById('diploma-date').textContent = new Date().toLocaleDateString('es-AR', {year:'numeric', month:'long', day:'numeric'});
+  document.getElementById('diploma').style.display = 'block';
+  document.getElementById('print-btn').style.display = 'block';
 }
 
 const games = [
@@ -366,6 +715,7 @@ function startQuiz(game){
 function renderQuizQuestion(){
   const panel = document.getElementById('quiz-panel');
   if(quizState.q >= quizState.qs.length){
+    recordResult(quizState.game.key, quizState.score, quizState.qs.length);
     panel.innerHTML = `<h2>${quizState.game.title}</h2><div class="final">
       <p>Terminaste la ronda.</p>
       <div class="big">${quizState.score} / ${quizState.qs.length}</div>
