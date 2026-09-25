@@ -41,14 +41,6 @@
   .screen{display:none;}
   .screen.active{display:block;}
 
-  details.guide{
-    background:var(--card); border:2px solid var(--line); border-radius:16px;
-    padding:16px 20px; margin-bottom:22px;
-  }
-  details.guide summary{font-size:1.15rem; font-weight:700; cursor:pointer; color:var(--teal-dark);}
-  details.guide ol{margin:14px 0 4px; padding-left:22px;}
-  details.guide li{margin-bottom:8px; color:var(--ink-soft);}
-
   .menu-grid{display:grid; grid-template-columns:1fr; gap:16px;}
   @media (min-width:620px){ .menu-grid{grid-template-columns:1fr 1fr;} }
   .game-card{
@@ -174,7 +166,7 @@
   .diploma .name{font-size:1.8rem; color:var(--teal-dark); font-weight:700; margin:10px 0;}
   .diploma .sub{color:var(--ink-soft); font-size:1rem;}
   @media print{
-    header.top, .backbtn, #cert-form, details.guide{display:none !important;}
+    header.top, .backbtn, #cert-form{display:none !important;}
     body{background:#fff;}
   }
 
@@ -204,21 +196,6 @@
 
   <!-- MENU -->
   <section id="menu" class="screen active">
-    <details class="guide">
-      <summary>Guía para la clase (1 hora) — tocar para ver</summary>
-      <ol>
-        <li><strong>0–8 min:</strong> Introducción: cómo tocar la pantalla, hacer clic y volver al menú.</li>
-        <li><strong>8–14 min:</strong> Memoria</li>
-        <li><strong>14–20 min:</strong> Cálculo Mental</li>
-        <li><strong>20–26 min:</strong> Completá el Dicho</li>
-        <li><strong>26–32 min:</strong> Opuestos</li>
-        <li><strong>32–38 min:</strong> Secuencias</li>
-        <li><strong>38–44 min:</strong> Encontrá el Intruso</li>
-        <li><strong>44–50 min:</strong> Ordená las Letras</li>
-        <li><strong>50–56 min:</strong> Sabías que… (curiosidades)</li>
-        <li><strong>56–60 min:</strong> Cierre y comentarios del grupo.</li>
-      </ol>
-    </details>
     <div class="menu-grid" id="menu-grid"></div>
     <button class="stats-link" onclick="showScreen('progreso'); renderProgreso();">📊 Ver mis progresos guardados</button>
   </section>
@@ -316,8 +293,8 @@ function sample(arr,n){ return shuffle([...arr]).slice(0,n); }
 /* ---------- ACCESIBILIDAD Y NIVEL ---------- */
 let fontStep = 0, appLevel = 'normal';
 function changeFontSize(d){
-  fontStep = Math.max(-2, Math.min(3, fontStep+d));
-  document.body.style.fontSize = (20 + fontStep*3) + 'px';
+  fontStep = Math.max(-2, Math.min(4, fontStep+d));
+  document.documentElement.style.fontSize = (16 + fontStep*2) + 'px';
   try{ localStorage.setItem('ma_fontStep', fontStep); }catch(e){}
 }
 function setLevel(l){
@@ -329,7 +306,7 @@ function setLevel(l){
 (function initA11y(){
   try{
     const sf = parseInt(localStorage.getItem('ma_fontStep'), 10);
-    if(!isNaN(sf)){ fontStep = sf; document.body.style.fontSize = (20+sf*3)+'px'; }
+    if(!isNaN(sf)){ fontStep = sf; document.documentElement.style.fontSize = (16+sf*2)+'px'; }
     setLevel(localStorage.getItem('ma_level') === 'facil' ? 'facil' : 'normal');
   }catch(e){ setLevel('normal'); }
 })();
