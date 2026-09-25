@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mente Activa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAF6F0; --card:#FFFFFF; --ink:#1F2D2D; --ink-soft:#4B5A5A;
+    --teal:#2A6F6F; --teal-dark:#1D5252; --coral:#E1795A; --coral-dark:#C55E40;
+    --good:#3E8E5B; --bad:#C24E4E; --line:#E4DCCF;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+    box-sizing:border-box;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#182323; --card:#20302F; --ink:#F2EFE9; --ink-soft:#C9D3D0;
+      --teal:#59B6AE; --teal-dark:#3E8E85; --coral:#F0916E; --coral-dark:#E1795A;
+      --good:#6FBE8C; --bad:#E28080; --line:#33433F;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#182323; --card:#20302F; --ink:#F2EFE9; --ink-soft:#C9D3D0;
+    --teal:#59B6AE; --teal-dark:#3E8E85; --coral:#F0916E; --coral-dark:#E1795A;
+    --good:#6FBE8C; --bad:#E28080; --line:#33433F;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Atkinson Hyperlegible", system-ui, sans-serif;
+    font-size:20px; line-height:1.5; min-height:100%;
+  }
+  .wrap{max-width:800px; margin:0 auto; padding:28px 20px 60px;}
+  header.top{text-align:center; margin-bottom:22px;}
+  header.top h1{font-size:2.3rem; margin:0 0 6px; color:var(--teal-dark); font-weight:700;}
+  header.top p{margin:0; color:var(--ink-soft); font-size:1.15rem;}
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  details.guide{
+    background:var(--card); border:2px solid var(--line); border-radius:16px;
+    padding:16px 20px; margin-bottom:22px;
+  }
+  details.guide summary{font-size:1.15rem; font-weight:700; cursor:pointer; color:var(--teal-dark);}
+  details.guide ol{margin:14px 0 4px; padding-left:22px;}
+  details.guide li{margin-bottom:8px; color:var(--ink-soft);}
+
+  .menu-grid{display:grid; grid-template-columns:1fr; gap:16px;}
+  @media (min-width:620px){ .menu-grid{grid-template-columns:1fr 1fr;} }
+  .game-card{
+    display:flex; align-items:center; gap:16px; width:100%;
+    background:var(--card); border:2px solid var(--line); border-radius:18px;
+    padding:20px; text-align:left; cursor:pointer; color:var(--ink);
+    font-family:inherit; font-size:1.1rem;
+  }
+  .game-card:hover, .game-card:focus-visible{border-color:var(--teal);}
+  .game-card .emoji{font-size:2.4rem; flex:0 0 auto;}
+  .game-card .txt strong{display:block; font-size:1.25rem; margin-bottom:4px;}
+  .game-card .txt span{color:var(--ink-soft); font-size:1rem;}
+
+  .backbtn{
+    background:none; border:2px solid var(--line); color:var(--ink);
+    border-radius:12px; padding:10px 18px; font-size:1.05rem; font-family:inherit;
+    cursor:pointer; margin-bottom:18px;
+  }
+  .panel{background:var(--card); border-radius:18px; padding:26px; border:2px solid var(--line);}
+  .panel h2{margin-top:0; color:var(--teal-dark); font-size:1.6rem;}
+  .btn{
+    background:var(--teal); color:#fff; border:none; border-radius:14px;
+    padding:16px 22px; font-size:1.2rem; font-family:inherit; cursor:pointer;
+    width:100%;
+  }
+  .btn:hover{background:var(--teal-dark);}
+  .status{font-size:1.05rem; color:var(--ink-soft); margin-bottom:14px;}
+
+  /* Memoria */
+  .mem-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin:18px 0;}
+  .mem-card{
+    aspect-ratio:1; border-radius:14px; border:none; cursor:pointer;
+    font-size:2.1rem; display:flex; align-items:center; justify-content:center;
+    background:var(--teal); color:var(--teal);
+  }
+  .mem-card.flipped, .mem-card.matched{background:var(--card); color:var(--ink); border:2px solid var(--line);}
+  .mem-card.matched{border-color:var(--good); opacity:.75;}
+  .mem-card:disabled{cursor:default;}
+
+  /* Quiz generico */
+  .quiz-prompt{font-size:1.6rem; text-align:center; margin:20px 0; color:var(--teal-dark); font-weight:700; letter-spacing:.03em;}
+  .opt-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;}
+  .opt-btn{
+    background:var(--card); border:2px solid var(--line); border-radius:14px;
+    padding:16px; font-size:1.15rem; font-family:inherit; cursor:pointer; color:var(--ink);
+  }
+  .opt-btn.correct{background:var(--good); color:#fff; border-color:var(--good);}
+  .opt-btn.wrong{background:var(--bad); color:#fff; border-color:var(--bad);}
+  .feedback{min-height:34px; font-size:1.1rem; font-weight:700; margin-bottom:6px;}
+  .feedback.good{color:var(--good);}
+  .feedback.bad{color:var(--bad);}
+  .final{text-align:center;}
+  .final .big{font-size:3rem; margin:10px 0;}
+
+  @media (max-width:480px){
+    body{font-size:18px;}
+    .mem-grid{grid-template-columns:repeat(3,1fr); gap:9px;}
+    header.top h1{font-size:1.9rem;}
+    .opt-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Mente Activa</h1>
+    <p>Juegos simples para ejercitar la memoria y la atención</p>
+  </header>
+
+  <!-- MENU -->
+  <section id="menu" class="screen active">
+    <details class="guide">
+      <summary>Guía para la clase (1 hora) — tocar para ver</summary>
+      <ol>
+        <li><strong>0–8 min:</strong> Introducción: cómo tocar la pantalla, hacer clic y volver al menú.</li>
+        <li><strong>8–14 min:</strong> Memoria</li>
+        <li><strong>14–20 min:</strong> Cálculo Mental</li>
+        <li><strong>20–26 min:</strong> Completá el Dicho</li>
+        <li><strong>26–32 min:</strong> Opuestos</li>
+        <li><strong>32–38 min:</strong> Secuencias</li>
+        <li><strong>38–44 min:</strong> Encontrá el Intruso</li>
+        <li><strong>44–50 min:</strong> Ordená las Letras</li>
+        <li><strong>50–56 min:</strong> Sabías que… (curiosidades)</li>
+        <li><strong>56–60 min:</strong> Cierre y comentarios del grupo.</li>
+      </ol>
+    </details>
+    <div class="menu-grid" id="menu-grid"></div>
+  </section>
+
+  <!-- MEMORIA -->
+  <section id="memoria" class="screen">
+    <button class="backbtn" onclick="showScreen('menu')">← Volver al menú</button>
+    <div class="panel">
+      <h2>Memoria</h2>
+      <div class="status" id="mem-status">Tocá dos cartas para ver si son iguales.</div>
+      <div class="mem-grid" id="mem-grid"></div>
+    </div>
+  </section>
+
+  <!-- QUIZ GENERICO -->
+  <section id="quiz" class="screen">
+    <button class="backbtn" onclick="showScreen('menu')">← Volver al menú</button>
+    <div class="panel" id="quiz-panel">
+      <h2 id="quiz-title"></h2>
+      <div class="status" id="quiz-status"></div>
+      <div class="quiz-prompt" id="quiz-prompt"></div>
+      <div class="opt-grid" id="quiz-opts"></div>
+      <div class="feedback" id="quiz-feedback"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+function sample(arr,n){ return shuffle([...arr]).slice(0,n); }
+
+/* ---------- MEMORIA ---------- */
+function initMemoria(){
+  const symbols = ['🌻','🐦','⚽','🍎','☕','🎵','🌙','🐝'];
+  let deck = shuffle([...symbols, ...symbols]);
+  const grid = document.getElementById('mem-grid');
+  grid.innerHTML = '';
+  let first=null, second=null, lock=false, matches=0;
+  document.getElementById('mem-status').textContent = 'Tocá dos cartas para ver si son iguales.';
+  deck.forEach(sym=>{
+    const b = document.createElement('button');
+    b.className = 'mem-card';
+    b.textContent = '?';
+    b.dataset.sym = sym;
+    b.addEventListener('click', ()=>{
+      if(lock || b.classList.contains('flipped') || b.classList.contains('matched')) return;
+      b.classList.add('flipped'); b.textContent = sym;
+      if(!first){ first = b; return; }
+      second = b; lock = true;
+      if(first.dataset.sym === second.dataset.sym){
+        first.classList.add('matched'); second.classList.add('matched');
+        matches++; first=null; second=null; lock=false;
+        if(matches === symbols.length){
+          document.getElementById('mem-status').textContent = '¡Felicitaciones! Encontraste todas las parejas 🎉';
+        }
+      } else {
+        setTimeout(()=>{
+          first.classList.remove('flipped'); first.textContent='?';
+          second.classList.remove('flipped'); second.textContent='?';
+          first=null; second=null; lock=false;
+        }, 800);
+      }
+    });
+    grid.appendChild(b);
+  });
+}
+
+/* ---------- BANCOS DE PREGUNTAS ---------- */
+const refranesBank = [
+  {p:'A caballo regalado', c:'no se le mira el diente', d:['se le pone montura','hay que devolverlo','no corre rápido']},
+  {p:'Más vale tarde', c:'que nunca', d:['que temprano','que nada','que mañana']},
+  {p:'Cría cuervos y', c:'te sacarán los ojos', d:['volarán lejos','cantarán feliz','te darán las gracias']},
+  {p:'En boca cerrada', c:'no entran moscas', d:['hay silencio','no hay palabras','no hay comida']},
+  {p:'No hay mal', c:'que dure cien años', d:['que no tenga solución','que venga solo','sin remedio']},
+  {p:'Perro que ladra', c:'no muerde', d:['está feliz','tiene hambre','corre rápido']},
+  {p:'Al mal tiempo', c:'buena cara', d:['buen paraguas','mala suerte','tormenta segura']},
+  {p:'Quien mucho abarca', c:'poco aprieta', d:['todo lo gana','nada suelta','triunfa siempre']},
+  {p:'Camarón que se duerme', c:'se lo lleva la corriente', d:['se despierta feliz','nada más rápido','vuelve a nacer']},
+  {p:'No por mucho madrugar', c:'amanece más temprano', d:['se descansa mejor','se llega más lejos','se gana más dinero']}
+];
+const antonimosBank = [
+  {w:'grande', c:'chico', d:['alto','rápido','contento']},
+  {w:'rápido', c:'lento', d:['fuerte','alto','claro']},
+  {w:'feliz', c:'triste', d:['cansado','nuevo','lejano']},
+  {w:'caro', c:'barato', d:['pesado','viejo','oscuro']},
+  {w:'fácil', c:'difícil', d:['lindo','largo','frío']},
+  {w:'lleno', c:'vacío', d:['limpio','claro','dulce']},
+  {w:'día', c:'noche', d:['tarde','mes','año']},
+  {w:'arriba', c:'abajo', d:['adelante','cerca','lejos']},
+  {w:'gordo', c:'flaco', d:['alto','fuerte','viejo']},
+  {w:'nuevo', c:'viejo', d:['grande','caro','limpio']}
+];
+const secuenciasBank = [
+  {seq:[2,4,6,8], c:10, d:[9,12,11]},
+  {seq:[5,10,15,20], c:25, d:[22,30,24]},
+  {seq:[1,3,5,7], c:9, d:[8,10,11]},
+  {seq:[10,20,30], c:40, d:[35,45,50]},
+  {seq:[3,6,9], c:12, d:[10,15,11]},
+  {seq:[20,18,16,14], c:12, d:[13,10,15]},
+  {seq:[100,90,80], c:70, d:[75,65,60]},
+  {seq:[1,4,7,10], c:13, d:[12,14,11]}
+];
+const triviaBank = [
+  {q:'¿Cuántos días tiene una semana?', c:'7', d:['5','6','8']},
+  {q:'¿Cuál es la capital de Argentina?', c:'Buenos Aires', d:['Córdoba','Rosario','Mendoza']},
+  {q:'¿Cuántos meses tiene el año?', c:'12', d:['10','11','13']},
+  {q:'¿Qué día viene después del lunes?', c:'Martes', d:['Miércoles','Domingo','Jueves']},
+  {q:'¿De qué color es el cielo en un día despejado?', c:'Celeste', d:['Verde','Gris','Amarillo']},
+  {q:'¿Cuántas patas tiene una mesa común?', c:'4', d:['2','3','6']},
+  {q:'¿Cuántos colores tiene el arcoíris?', c:'7', d:['5','6','9']},
+  {q:'¿En qué estación hace más frío?', c:'Invierno', d:['Verano','Primavera','Otoño']},
+  {q:'¿Cuántas horas tiene un día?', c:'24', d:['12','20','30']},
+  {q:'¿Qué animal dice "muu"?', c:'La vaca', d:['El perro','El gato','El caballo']}
+];
+const anagramBank = [
+  {w:'CASA', d:['COSA','SACO','VASO']},
+  {w:'FLOR', d:['FRIO','LIBRO','FELIZ']},
+  {w:'GATO', d:['TOGA','LOBO','PATO']},
+  {w:'LUNA', d:['LANA','LIMA','LUPA']},
+  {w:'MESA', d:['MASA','MISA','MOSCA']},
+  {w:'PLAYA', d:['PALYA','PALTA','PLATA']},
+  {w:'NOCHE', d:['COCHE','LECHE','NOCHA']}
+];
+
+const intrusoBank = [
+  {w:['MANZANA','PERA','BANANA','SILLA'], i:'SILLA'},
+  {w:['PERRO','GATO','VACA','MESA'], i:'MESA'},
+  {w:['ROJO','AZUL','VERDE','ZAPATO'], i:'ZAPATO'},
+  {w:['LUNES','MARTES','ABRIL','JUEVES'], i:'ABRIL'},
+  {w:['CUCHARA','TENEDOR','CUCHILLO','PELOTA'], i:'PELOTA'},
+  {w:['ENERO','FEBRERO','MARZO','LUNES'], i:'LUNES'},
+  {w:['ROSA','CLAVEL','TULIPÁN','ZANAHORIA'], i:'ZANAHORIA'},
+  {w:['GUITARRA','PIANO','VIOLÍN','MARTILLO'], i:'MARTILLO'}
+];
+
+function toQ(prompt, correct, distractors){
+  const opts = shuffle([correct, ...distractors]);
+  return {prompt, opts, answer: opts.indexOf(correct)};
+}
+function buildCalculo(){
+  const qs = [];
+  for(let i=0;i<5;i++){
+    const a = Math.floor(Math.random()*15)+1;
+    const b = Math.floor(Math.random()*15)+1;
+    const isAdd = Math.random() > 0.4;
+    const answer = isAdd ? a+b : Math.max(a,b)-Math.min(a,b);
+    const text = (isAdd ? `${a} + ${b}` : `${Math.max(a,b)} - ${Math.min(a,b)}`) + ' = ?';
+    const opts = new Set([answer]);
+    while(opts.size < 4){
+      const cand = answer + Math.floor(Math.random()*7)-3;
+      if(cand >= 0 && cand !== answer) opts.add(cand);
+    }
+    const optsArr = shuffle([...opts].map(String));
+    qs.push({prompt:text, opts:optsArr, answer:optsArr.indexOf(String(answer))});
+  }
+  return qs;
+}
+function buildRefranes(){
+  return sample(refranesBank,5).map(x=>toQ(x.p+'…', x.c, x.d));
+}
+function buildAntonimos(){
+  return sample(antonimosBank,5).map(x=>toQ(`¿Cuál es el opuesto de "${x.w}"?`, x.c, x.d));
+}
+function buildSecuencias(){
+  return sample(secuenciasBank,5).map(x=>toQ(x.seq.join(', ')+', ¿qué número sigue?', String(x.c), x.d.map(String)));
+}
+function buildTrivia(){
+  return sample(triviaBank,5).map(x=>toQ(x.q, x.c, x.d));
+}
+function buildAnagramas(){
+  return sample(anagramBank,5).map(x=>{
+    let scrambled;
+    do{ scrambled = shuffle(x.w.split('')).join(''); } while(scrambled === x.w);
+    return toQ('Ordená las letras: '+scrambled.split('').join(' '), x.w, x.d);
+  });
+}
+
+function buildIntruso(){
+  return sample(intrusoBank,5).map(x=>{
+    const opts = shuffle([...x.w]);
+    return {prompt:'¿Cuál de estas palabras no pertenece al grupo?', opts, answer: opts.indexOf(x.i)};
+  });
+}
+
+const games = [
+  {key:'memoria', emoji:'🧠', title:'Memoria', desc:'Encontrá las parejas iguales', kind:'memoria'},
+  {key:'calculo', emoji:'➕', title:'Cálculo Mental', desc:'Resolvé cuentas simples', kind:'quiz', build:buildCalculo},
+  {key:'refranes', emoji:'💬', title:'Completá el Dicho', desc:'Elegí cómo termina', kind:'quiz', build:buildRefranes},
+  {key:'antonimos', emoji:'🔄', title:'Opuestos', desc:'Encontrá la palabra contraria', kind:'quiz', build:buildAntonimos},
+  {key:'secuencias', emoji:'🔢', title:'Secuencias', desc:'Descubrí qué número sigue', kind:'quiz', build:buildSecuencias},
+  {key:'intruso', emoji:'🔍', title:'Encontrá el Intruso', desc:'Descubrí cuál palabra no pertenece', kind:'quiz', build:buildIntruso},
+  {key:'anagramas', emoji:'🔤', title:'Ordená las Letras', desc:'Formá la palabra correcta', kind:'quiz', build:buildAnagramas},
+  {key:'trivia', emoji:'💡', title:'Sabías que…', desc:'Preguntas de cultura general', kind:'quiz', build:buildTrivia}
+];
+
+function renderMenu(){
+  const grid = document.getElementById('menu-grid');
+  grid.innerHTML = '';
+  games.forEach(g=>{
+    const b = document.createElement('button');
+    b.className = 'game-card';
+    b.innerHTML = `<span class="emoji">${g.emoji}</span><span class="txt"><strong>${g.title}</strong><span>${g.desc}</span></span>`;
+    b.onclick = ()=>{
+      if(g.kind === 'memoria'){ showScreen('memoria'); initMemoria(); }
+      else { startQuiz(g); }
+    };
+    grid.appendChild(b);
+  });
+}
+renderMenu();
+
+/* ---------- MOTOR DE QUIZ GENERICO ---------- */
+let quizState = {game:null, qs:[], q:0, score:0};
+function startQuiz(game){
+  quizState = {game, qs: game.build(), q:0, score:0};
+  document.getElementById('quiz-title').textContent = game.title;
+  showScreen('quiz');
+  renderQuizQuestion();
+}
+function renderQuizQuestion(){
+  const panel = document.getElementById('quiz-panel');
+  if(quizState.q >= quizState.qs.length){
+    panel.innerHTML = `<h2>${quizState.game.title}</h2><div class="final">
+      <p>Terminaste la ronda.</p>
+      <div class="big">${quizState.score} / ${quizState.qs.length}</div>
+      <button class="btn" onclick="startQuiz(quizState.game)">Jugar de nuevo</button>
+    </div>`;
+    return;
+  }
+  document.getElementById('quiz-feedback').textContent = '';
+  document.getElementById('quiz-status').textContent = `Pregunta ${quizState.q+1} de ${quizState.qs.length} — Aciertos: ${quizState.score}`;
+  const item = quizState.qs[quizState.q];
+  document.getElementById('quiz-prompt').textContent = item.prompt;
+  const optsEl = document.getElementById('quiz-opts');
+  optsEl.innerHTML = '';
+  item.opts.forEach((txt, idx)=>{
+    const b = document.createElement('button');
+    b.className = 'opt-btn';
+    b.textContent = txt;
+    b.onclick = ()=>{
+      document.querySelectorAll('#quiz-opts .opt-btn').forEach(x=>x.disabled=true);
+      const fb = document.getElementById('quiz-feedback');
+      if(idx === item.answer){
+        b.classList.add('correct');
+        fb.textContent = '¡Muy bien!'; fb.className = 'feedback good';
+        quizState.score++;
+      } else {
+        b.classList.add('wrong');
+        fb.textContent = `La respuesta era: ${item.opts[item.answer]}`; fb.className = 'feedback bad';
+      }
+      quizState.q++;
+      setTimeout(renderQuizQuestion, 1300);
+    };
+    optsEl.appendChild(b);
+  });
+}
+</script>
+</body>
+</html>
