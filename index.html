@@ -1,732 +1,1137 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="h-full bg-slate-950 text-slate-100">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Mente Activa</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg:#FAF6F0; --card:#FFFFFF; --ink:#1F2D2D; --ink-soft:#4B5A5A;
-    --teal:#2A6F6F; --teal-dark:#1D5252; --coral:#E1795A; --coral-dark:#C55E40;
-    --good:#3E8E5B; --bad:#C24E4E; --line:#E4DCCF;
-    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
-    box-sizing:border-box;
-  }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
-      --bg:#182323; --card:#20302F; --ink:#F2EFE9; --ink-soft:#C9D3D0;
-      --teal:#59B6AE; --teal-dark:#3E8E85; --coral:#F0916E; --coral-dark:#E1795A;
-      --good:#6FBE8C; --bad:#E28080; --line:#33433F;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Taller Interactivo: No Todo lo que Ves Es Real</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Inter Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              500: '#22c55e',
+              600: '#16a34a',
+            },
+            accent: {
+              purple: '#a855f7',
+              pink: '#ec4899',
+              cyan: '#06b6d4',
+              amber: '#f59e0b',
+            }
+          },
+          animation: {
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'bounce-short': 'bounce 1s infinite',
+          }
+        }
+      }
     }
-  }
-  :root[data-theme="dark"]{
-    --bg:#182323; --card:#20302F; --ink:#F2EFE9; --ink-soft:#C9D3D0;
-    --teal:#59B6AE; --teal-dark:#3E8E85; --coral:#F0916E; --coral-dark:#E1795A;
-    --good:#6FBE8C; --bad:#E28080; --line:#33433F;
-  }
-  *{box-sizing:border-box;}
-  html{scroll-padding-top:env(safe-area-inset-top,0px);}
-  body{
-    margin:0; background:var(--bg); color:var(--ink);
-    font-family:"Atkinson Hyperlegible", system-ui, sans-serif;
-    font-size:20px; line-height:1.5; min-height:100%;
-  }
-  .wrap{max-width:800px; margin:0 auto; padding:28px 20px 60px;}
-  header.top{text-align:center; margin-bottom:22px;}
-  header.top h1{font-size:2.3rem; margin:0 0 6px; color:var(--teal-dark); font-weight:700;}
-  header.top p{margin:0; color:var(--ink-soft); font-size:1.15rem;}
-  .screen{display:none;}
-  .screen.active{display:block;}
-
-  .menu-grid{display:grid; grid-template-columns:1fr; gap:16px;}
-  @media (min-width:620px){ .menu-grid{grid-template-columns:1fr 1fr;} }
-  .game-card{
-    display:flex; align-items:center; gap:16px; width:100%;
-    background:var(--card); border:2px solid var(--line); border-radius:18px;
-    padding:20px; text-align:left; cursor:pointer; color:var(--ink);
-    font-family:inherit; font-size:1.1rem;
-  }
-  .game-card:hover, .game-card:focus-visible{border-color:var(--teal);}
-  .game-card .emoji{font-size:2.4rem; flex:0 0 auto;}
-  .game-card .txt strong{display:block; font-size:1.25rem; margin-bottom:4px;}
-  .game-card .txt span{color:var(--ink-soft); font-size:1rem;}
-  .game-card .txt .benefit{
-    display:inline-block; margin-top:6px; font-size:.85rem; color:var(--teal-dark);
-    background:var(--bg); border:1px solid var(--line); border-radius:20px; padding:3px 10px;
-  }
-
-  .a11y-bar{
-    display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px;
-    margin-top:14px; font-size:.95rem; color:var(--ink-soft);
-  }
-  .a11y-bar .sep{opacity:.4;}
-  .a11y-btn, .level-btn{
-    background:var(--card); border:2px solid var(--line); color:var(--ink);
-    border-radius:10px; padding:6px 12px; font-family:inherit; font-weight:700;
-    font-size:1rem; cursor:pointer;
-  }
-  .level-btn.active{background:var(--teal); border-color:var(--teal); color:#fff;}
-  .tts-btn{
-    background:var(--card); border:2px solid var(--teal); color:var(--teal-dark);
-    border-radius:12px; padding:8px 16px; font-family:inherit; font-size:1rem;
-    cursor:pointer; display:block; margin:0 auto 10px;
-  }
-  .stats-link{
-    display:block; width:100%; margin-top:14px; background:none; border:2px dashed var(--line);
-    color:var(--ink-soft); border-radius:14px; padding:14px; font-family:inherit;
-    font-size:1.05rem; cursor:pointer;
-  }
-  .prog-row{
-    display:flex; justify-content:space-between; align-items:center; gap:10px;
-    background:var(--bg); border:2px solid var(--line); border-radius:12px;
-    padding:12px 16px; margin-bottom:10px;
-  }
-  .prog-row strong{font-size:1.05rem;}
-  .prog-row span{color:var(--teal-dark); font-weight:700; white-space:nowrap;}
-  .backbtn{
-    background:none; border:2px solid var(--line); color:var(--ink);
-    border-radius:12px; padding:10px 18px; font-size:1.05rem; font-family:inherit;
-    cursor:pointer; margin-bottom:18px;
-  }
-  .panel{background:var(--card); border-radius:18px; padding:26px; border:2px solid var(--line);}
-  .panel h2{margin-top:0; color:var(--teal-dark); font-size:1.6rem;}
-  .btn{
-    background:var(--teal); color:#fff; border:none; border-radius:14px;
-    padding:16px 22px; font-size:1.2rem; font-family:inherit; cursor:pointer;
-    width:100%;
-  }
-  .btn:hover{background:var(--teal-dark);}
-  .status{font-size:1.05rem; color:var(--ink-soft); margin-bottom:14px;}
-
-  /* Memoria */
-  .mem-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin:18px 0;}
-  .mem-card{
-    aspect-ratio:1; border-radius:14px; border:none; cursor:pointer;
-    font-size:2.1rem; display:flex; align-items:center; justify-content:center;
-    background:var(--teal); color:var(--teal);
-  }
-  .mem-card.flipped, .mem-card.matched{background:var(--card); color:var(--ink); border:2px solid var(--line);}
-  .mem-card.matched{border-color:var(--good); opacity:.75;}
-  .mem-card:disabled{cursor:default;}
-
-  /* Quiz generico */
-  .quiz-prompt{font-size:1.6rem; text-align:center; margin:20px 0; color:var(--teal-dark); font-weight:700; letter-spacing:.03em;}
-  .opt-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;}
-  .opt-btn{
-    background:var(--card); border:2px solid var(--line); border-radius:14px;
-    padding:16px; font-size:1.15rem; font-family:inherit; cursor:pointer; color:var(--ink);
-  }
-  .opt-btn.correct{background:var(--good); color:#fff; border-color:var(--good);}
-  .opt-btn.wrong{background:var(--bad); color:#fff; border-color:var(--bad);}
-  .feedback{min-height:34px; font-size:1.1rem; font-weight:700; margin-bottom:6px;}
-  .feedback.good{color:var(--good);}
-  .feedback.bad{color:var(--bad);}
-  .final{text-align:center;}
-  .final .big{font-size:3rem; margin:10px 0;}
-
-  /* Secuencia de colores */
-  .simon-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; max-width:340px; margin:20px auto;}
-  .simon-tile{
-    aspect-ratio:1; border:none; border-radius:16px; cursor:pointer; opacity:.55;
-    transition:opacity .15s, transform .1s;
-  }
-  .simon-tile.lit{opacity:1; transform:scale(0.97);}
-  .simon-tile:disabled{cursor:default;}
-  .simon-tile.t0{background:#2A6F6F;} .simon-tile.t1{background:#E1795A;}
-  .simon-tile.t2{background:#D9A441;} .simon-tile.t3{background:#7A5CC0;}
-
-  /* Ordená los pasos */
-  .pasos-list{list-style:none; margin:18px 0; padding:0; display:flex; flex-direction:column; gap:10px;}
-  .pasos-item{
-    display:flex; align-items:center; gap:12px; background:var(--bg);
-    border:2px solid var(--line); border-radius:14px; padding:12px 14px;
-  }
-  .pasos-item.ok{border-color:var(--good);}
-  .pasos-item.no{border-color:var(--bad);}
-  .pasos-item span.txt{flex:1; font-size:1.05rem;}
-  .pasos-item .move{
-    background:var(--card); border:2px solid var(--line); border-radius:10px;
-    width:42px; height:42px; font-size:1.1rem; cursor:pointer; color:var(--ink);
-  }
-  .pasos-item .move:disabled{opacity:.3; cursor:default;}
-
-  /* Certificado */
-  #certificado input{
-    width:100%; font-family:inherit; font-size:1.15rem; padding:12px 14px;
-    border:2px solid var(--line); border-radius:12px; margin:14px 0; color:var(--ink); background:var(--card);
-  }
-  .diploma{
-    border:3px solid var(--teal); border-radius:16px; padding:34px 24px; text-align:center;
-    margin-top:20px; background:var(--bg);
-  }
-  .diploma .cap{color:var(--ink-soft); letter-spacing:.04em; font-size:1rem;}
-  .diploma .name{font-size:1.8rem; color:var(--teal-dark); font-weight:700; margin:10px 0;}
-  .diploma .sub{color:var(--ink-soft); font-size:1rem;}
-  @media print{
-    header.top, .backbtn, #cert-form{display:none !important;}
-    body{background:#fff;}
-  }
-
-  @media (max-width:480px){
-    body{font-size:18px;}
-    .mem-grid{grid-template-columns:repeat(3,1fr); gap:9px;}
-    header.top h1{font-size:1.9rem;}
-    .opt-grid{grid-template-columns:1fr;}
-  }
-</style>
+  </script>
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    
+    .glow-purple {
+      box-shadow: 0 0 25px -5px rgba(168, 85, 247, 0.3);
+    }
+    .glow-cyan {
+      box-shadow: 0 0 25px -5px rgba(6, 182, 212, 0.3);
+    }
+    .glow-green {
+      box-shadow: 0 0 25px -5px rgba(34, 197, 94, 0.3);
+    }
+  </style>
 </head>
-<body>
-<div class="wrap">
-  <header class="top">
-    <h1>Mente Activa</h1>
-    <p>Juegos simples para ejercitar la memoria y la atención</p>
-    <div class="a11y-bar">
-      <span>Tamaño de letra:</span>
-      <button class="a11y-btn" onclick="changeFontSize(-1)" aria-label="Achicar letra">A−</button>
-      <button class="a11y-btn" onclick="changeFontSize(1)" aria-label="Agrandar letra">A+</button>
-      <span class="sep">|</span>
-      <span>Nivel:</span>
-      <button class="level-btn" id="lvl-facil" onclick="setLevel('facil')">Fácil</button>
-      <button class="level-btn" id="lvl-normal" onclick="setLevel('normal')">Normal</button>
+<body class="h-full flex flex-col font-sans antialiased overflow-x-hidden selection:bg-purple-500 selection:text-white">
+
+  <!-- Top Header Navigation -->
+  <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="p-2 bg-gradient-to-tr from-purple-600 to-indigo-500 rounded-xl shadow-lg shadow-purple-500/20">
+          <i data-lucide="shield-alert" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
+            No Todo lo que Ves Es Real
+          </h1>
+          <p class="text-xs text-slate-400 hidden sm:block">Prevención de Grooming y Perfiles Falsos por IA</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="hidden md:flex items-center space-x-1 bg-slate-950/60 p-1.5 rounded-xl border border-slate-800">
+        <button onclick="switchTab('tab-challenge')" id="btn-tab-challenge" class="nav-tab active flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 text-white bg-purple-600/90 shadow">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+          <span>1. Desafío IA</span>
+        </button>
+        <button onclick="switchTab('tab-builder')" id="btn-tab-builder" class="nav-tab flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/60">
+          <i data-lucide="user-plus" class="w-4 h-4"></i>
+          <span>2. Perfil Falso</span>
+        </button>
+        <button onclick="switchTab('tab-anatomy')" id="btn-tab-anatomy" class="nav-tab flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/60">
+          <i data-lucide="git-commit" class="w-4 h-4"></i>
+          <span>3. El Engaño</span>
+        </button>
+        <button onclick="switchTab('tab-quiz')" id="btn-tab-quiz" class="nav-tab flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/60">
+          <i data-lucide="gamepad-2" class="w-4 h-4"></i>
+          <span>4. Trivias & Casos</span>
+        </button>
+      </nav>
+
+      <!-- Audio & Presenter Controls -->
+      <div class="flex items-center space-x-2">
+        <button id="audio-toggle" onclick="toggleAudio()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors" title="Efectos de Sonido">
+          <i data-lucide="volume-2" id="audio-icon" class="w-5 h-5"></i>
+        </button>
+        <button onclick="toggleTeacherNotes()" class="flex items-center space-x-1 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-medium transition-colors border border-amber-500/20">
+          <i data-lucide="lightbulb" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Guía Profe</span>
+        </button>
+      </div>
     </div>
   </header>
 
-  <!-- MENU -->
-  <section id="menu" class="screen active">
-    <div class="menu-grid" id="menu-grid"></div>
-    <button class="stats-link" onclick="showScreen('progreso'); renderProgreso();">📊 Ver mis progresos guardados</button>
-  </section>
+  <!-- Mobile Nav Bottom -->
+  <div class="md:hidden bg-slate-900 border-t border-slate-800 fixed bottom-0 inset-x-0 z-50 px-2 py-2 flex justify-around">
+    <button onclick="switchTab('tab-challenge')" class="mobile-nav-btn p-2 rounded-lg text-purple-400 flex flex-col items-center">
+      <i data-lucide="sparkles" class="w-5 h-5"></i>
+      <span class="text-[10px] mt-0.5 font-medium">IA</span>
+    </button>
+    <button onclick="switchTab('tab-builder')" class="mobile-nav-btn p-2 rounded-lg text-slate-400 flex flex-col items-center">
+      <i data-lucide="user-plus" class="w-5 h-5"></i>
+      <span class="text-[10px] mt-0.5 font-medium">Perfil</span>
+    </button>
+    <button onclick="switchTab('tab-anatomy')" class="mobile-nav-btn p-2 rounded-lg text-slate-400 flex flex-col items-center">
+      <i data-lucide="git-commit" class="w-5 h-5"></i>
+      <span class="text-[10px] mt-0.5 font-medium">Engaño</span>
+    </button>
+    <button onclick="switchTab('tab-quiz')" class="mobile-nav-btn p-2 rounded-lg text-slate-400 flex flex-col items-center">
+      <i data-lucide="gamepad-2" class="w-5 h-5"></i>
+      <span class="text-[10px] mt-0.5 font-medium">Trivias</span>
+    </button>
+  </div>
 
-  <!-- MEMORIA -->
-  <section id="memoria" class="screen">
-    <button class="backbtn" onclick="showScreen('menu')">← Volver al menú</button>
-    <div class="panel">
-      <h2>Memoria</h2>
-      <div class="status" id="mem-status">Tocá dos cartas para ver si son iguales.</div>
-      <div class="mem-grid" id="mem-grid"></div>
-    </div>
-  </section>
-
-  <!-- QUIZ GENERICO -->
-  <section id="quiz" class="screen">
-    <button class="backbtn" onclick="showScreen('menu')">← Volver al menú</button>
-    <div class="panel" id="quiz-panel">
-      <h2 id="quiz-title"></h2>
-      <div class="status" id="quiz-status"></div>
-      <div class="quiz-prompt" id="quiz-prompt"></div>
-      <button class="tts-btn" onclick="leerPregunta()">🔊 Escuchar la pregunta</button>
-      <div class="opt-grid" id="quiz-opts"></div>
-      <div class="feedback" id="quiz-feedback"></div>
-    </div>
-  </section>
-
-  <!-- MIS PROGRESOS -->
-  <section id="progreso" class="screen">
-    <button class="backbtn" onclick="showScreen('menu')">← Volver al menú</button>
-    <div class="panel">
-      <h2>Mis Progresos</h2>
-      <div class="status">Estadísticas guardadas en este dispositivo, juego por juego.</div>
-      <div id="progreso-list"></div>
-      <button class="btn" style="background:var(--coral); margin-top:10px;" onclick="resetProgreso()">Borrar progresos</button>
-    </div>
-  </section>
-  <!-- SECUENCIA DE COLORES -->
-  <section id="simon" class="screen">
-    <button class="backbtn" onclick="showScreen('menu')">← Volver al menú</button>
-    <div class="panel">
-      <h2>Secuencia de Colores</h2>
-      <div class="status" id="simon-status">Mirá la secuencia y luego repetila tocando los mismos colores, en el mismo orden.</div>
-      <div class="simon-grid" id="simon-grid"></div>
-      <button class="btn" id="simon-start" onclick="simonStart()">Empezar</button>
-    </div>
-  </section>
-
-  <!-- ORDENA LOS PASOS -->
-  <section id="pasos" class="screen">
-    <button class="backbtn" onclick="showScreen('menu')">← Volver al menú</button>
-    <div class="panel">
-      <h2>Ordená los Pasos</h2>
-      <div class="status" id="pasos-status"></div>
-      <ol class="pasos-list" id="pasos-list"></ol>
-      <button class="btn" id="pasos-check" onclick="checkPasos()">Verificar orden</button>
-    </div>
-  </section>
-
-  <!-- CERTIFICADO -->
-  <section id="certificado" class="screen">
-    <button class="backbtn" onclick="showScreen('menu')">← Volver al menú</button>
-    <div class="panel">
-      <h2>Certificado de Participación</h2>
-      <div id="cert-form">
-        <div class="status">Escribí el nombre del participante y generá su diploma para imprimir.</div>
-        <input type="text" id="cert-name" placeholder="Nombre del participante">
-        <button class="btn" onclick="generarCertificado()">Generar certificado</button>
+  <!-- Teacher Notes Modal Banner -->
+  <div id="teacher-notes" class="hidden bg-slate-900/95 border-b border-amber-500/30 px-4 py-3 text-sm text-slate-300 relative z-40 backdrop-blur-sm">
+    <div class="max-w-7xl mx-auto flex items-start justify-between">
+      <div class="flex items-start space-x-3">
+        <i data-lucide="book-open" class="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0"></i>
+        <div>
+          <span class="font-bold text-amber-400">Guía para el Docente: </span>
+          <span id="teacher-note-text">Haz preguntas abiertas a la clase antes de presionar los botones. Permite que los chicos voten alzando la mano para exponer la falsa seguridad digital.</span>
+        </div>
       </div>
-      <div class="diploma" id="diploma" style="display:none;">
-        <div class="cap">Certificado de Participación</div>
-        <div class="name" id="diploma-name"></div>
-        <div class="sub">Completó las actividades de Mente Activa</div>
-        <div class="sub" id="diploma-date"></div>
-      </div>
-      <button class="btn" id="print-btn" style="display:none; margin-top:14px;" onclick="window.print()">Imprimir</button>
+      <button onclick="toggleTeacherNotes()" class="text-slate-400 hover:text-white p-1">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
     </div>
-  </section>
-</div>
+  </div>
 
-<script>
-function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-function shuffle(arr){
-  for(let i=arr.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [arr[i],arr[j]]=[arr[j],arr[i]];
-  }
-  return arr;
-}
-function sample(arr,n){ return shuffle([...arr]).slice(0,n); }
+  <!-- Main Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 pb-20 md:pb-8">
 
-/* ---------- ACCESIBILIDAD Y NIVEL ---------- */
-let fontStep = 0, appLevel = 'normal';
-function changeFontSize(d){
-  fontStep = Math.max(-2, Math.min(4, fontStep+d));
-  document.documentElement.style.fontSize = (16 + fontStep*2) + 'px';
-  try{ localStorage.setItem('ma_fontStep', fontStep); }catch(e){}
-}
-function setLevel(l){
-  appLevel = l;
-  const f = document.getElementById('lvl-facil'), n = document.getElementById('lvl-normal');
-  if(f && n){ f.classList.toggle('active', l==='facil'); n.classList.toggle('active', l==='normal'); }
-  try{ localStorage.setItem('ma_level', l); }catch(e){}
-}
-(function initA11y(){
-  try{
-    const sf = parseInt(localStorage.getItem('ma_fontStep'), 10);
-    if(!isNaN(sf)){ fontStep = sf; document.documentElement.style.fontSize = (16+sf*2)+'px'; }
-    setLevel(localStorage.getItem('ma_level') === 'facil' ? 'facil' : 'normal');
-  }catch(e){ setLevel('normal'); }
-})();
-function leerPregunta(){
-  try{
-    const item = quizState.qs[quizState.q];
-    if(!item || !('speechSynthesis' in window)) return;
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(item.prompt + '. Opciones: ' + item.opts.join(', '));
-    u.lang = 'es-AR'; u.rate = 0.9;
-    speechSynthesis.speak(u);
-  }catch(e){}
-}
+    <!-- SECTION 1: EL DESAFÍO DE LAS FOTOS DE IA -->
+    <section id="tab-challenge" class="tab-content block space-y-6 animate-fadeIn">
+      <div class="bg-gradient-to-r from-slate-900 via-purple-950/40 to-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 relative overflow-hidden">
+        <div class="absolute -right-10 -top-10 w-60 h-60 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="max-w-3xl">
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-semibold mb-3">
+            <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+            <span>Dinámica de Calentamiento</span>
+          </div>
+          <h2 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+            ¿Quién es REAL y quién es FALSO?
+          </h2>
+          <p class="mt-2 text-slate-300 text-sm sm:text-base leading-relaxed">
+            Observa atentamente a estas 4 personas que solicitan tu amistad en redes. Haz clic sobre cada una para indicar si crees que es una persona real o un rostro inventado por Inteligencia Artificial.
+          </p>
+        </div>
+      </div>
 
-/* ---------- PROGRESOS ---------- */
-const progLabels = {memoria:'Memoria', calculo:'Cálculo Mental', refranes:'Completá el Dicho',
-  antonimos:'Opuestos', secuencias:'Secuencias', intruso:'Encontrá el Intruso',
-  anagramas:'Ordená las Letras', trivia:'Sabías que…', colores:'Secuencia de Colores'};
-function recordResult(key, score, total){
-  try{
-    const raw = localStorage.getItem('ma_stats');
-    const stats = raw ? JSON.parse(raw) : {};
-    if(!stats[key]) stats[key] = {jugadas:0, mejor:0, total:total};
-    stats[key].jugadas++;
-    stats[key].total = total;
-    if(score > stats[key].mejor) stats[key].mejor = score;
-    localStorage.setItem('ma_stats', JSON.stringify(stats));
-  }catch(e){}
-}
-function renderProgreso(){
-  const el = document.getElementById('progreso-list');
-  let stats = {};
-  try{ stats = JSON.parse(localStorage.getItem('ma_stats') || '{}'); }catch(e){}
-  const keys = Object.keys(stats);
-  if(keys.length === 0){
-    el.innerHTML = '<p>Todavía no jugaste ninguna ronda completa. ¡Animate a probar un juego!</p>';
-    return;
-  }
-  el.innerHTML = keys.map(k=>{
-    const s = stats[k];
-    const label = progLabels[k] || k;
-    return `<div class="prog-row"><strong>${label}</strong><span>Mejor: ${s.mejor}/${s.total} · Jugado ${s.jugadas} ${s.jugadas===1?'vez':'veces'}</span></div>`;
-  }).join('');
-}
-function resetProgreso(){
-  try{ localStorage.removeItem('ma_stats'); }catch(e){}
-  renderProgreso();
-}
+      <!-- Photo Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="ai-photo-grid">
+        <!-- Photo Cards populated by JS -->
+      </div>
 
-/* ---------- MEMORIA ---------- */
-function initMemoria(){
-  const allSymbols = ['🌻','🐦','⚽','🍎','☕','🎵','🌙','🐝','🍓','🐱'];
-  const symbols = appLevel==='facil' ? allSymbols.slice(0,6) : allSymbols.slice(0,8);
-  let deck = shuffle([...symbols, ...symbols]);
-  const grid = document.getElementById('mem-grid');
-  grid.style.gridTemplateColumns = appLevel==='facil' ? 'repeat(3,1fr)' : 'repeat(4,1fr)';
-  grid.innerHTML = '';
-  let first=null, second=null, lock=false, matches=0;
-  document.getElementById('mem-status').textContent = 'Tocá dos cartas para ver si son iguales.';
-  deck.forEach(sym=>{
-    const b = document.createElement('button');
-    b.className = 'mem-card';
-    b.textContent = '?';
-    b.dataset.sym = sym;
-    b.addEventListener('click', ()=>{
-      if(lock || b.classList.contains('flipped') || b.classList.contains('matched')) return;
-      b.classList.add('flipped'); b.textContent = sym;
-      if(!first){ first = b; return; }
-      second = b; lock = true;
-      if(first.dataset.sym === second.dataset.sym){
-        first.classList.add('matched'); second.classList.add('matched');
-        matches++; first=null; second=null; lock=false;
-        if(matches === symbols.length){
-          document.getElementById('mem-status').textContent = '¡Felicitaciones! Encontraste todas las parejas 🎉';
-          recordResult('memoria', matches, symbols.length);
-        }
+      <!-- Big Reveal Section (Initially Hidden) -->
+      <div id="ai-reveal-card" class="hidden bg-gradient-to-br from-purple-900/50 via-slate-900 to-indigo-950/60 border-2 border-purple-500/40 rounded-3xl p-6 sm:p-8 glow-purple transition-all duration-500 animate-bounce-short">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div class="space-y-3 text-center md:text-left">
+            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold">
+              <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+              <span>¡REVELACIÓN DE LA CLASE!</span>
+            </div>
+            <h3 class="text-2xl sm:text-3xl font-extrabold text-white">
+              ¡NINGUNO ES REAL! Todos son creados por IA 🤖
+            </h3>
+            <p class="text-slate-300 text-sm sm:text-base max-w-2xl">
+              Aunque todos parecen compañeros o chicos de su misma edad, <strong class="text-purple-300">ninguna de estas personas existe en el mundo real</strong>. Una Inteligencia Artificial las generó en menos de 3 segundos.
+            </p>
+          </div>
+          <button onclick="switchTab('tab-builder')" class="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold text-sm shadow-xl flex items-center justify-center space-x-2 transition-transform active:scale-95 whitespace-nowrap">
+            <span>Siguiente Paso: Ver Perfil Falso</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- AI Clues list -->
+        <div class="mt-6 pt-6 border-t border-purple-500/20 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800 flex items-start space-x-3">
+            <i data-lucide="eye" class="w-5 h-5 text-purple-400 mt-1 flex-shrink-0"></i>
+            <div>
+              <h4 class="text-xs font-bold text-slate-200">Mirada Perfecta / Fondo Borroso</h4>
+              <p class="text-[11px] text-slate-400 mt-0.5">Los ojos casi siempre apuntan perfecto al centro y los fondos suelen ser luces abstractas.</p>
+            </div>
+          </div>
+          <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800 flex items-start space-x-3">
+            <i data-lucide="sparkles" class="w-5 h-5 text-pink-400 mt-1 flex-shrink-0"></i>
+            <div>
+              <h4 class="text-xs font-bold text-slate-200">Piel Ultra Suave</h4>
+              <p class="text-[11px] text-slate-400 mt-0.5">Sin imperfecciones, pecas o texturas naturales de la piel cotidiana.</p>
+            </div>
+          </div>
+          <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800 flex items-start space-x-3">
+            <i data-lucide="scissors" class="w-5 h-5 text-cyan-400 mt-1 flex-shrink-0"></i>
+            <div>
+              <h4 class="text-xs font-bold text-slate-200">Detalles Extraños</h4>
+              <p class="text-[11px] text-slate-400 mt-0.5">Aros desiguales, cabello que se fusiona con la ropa o cadenas simétricas.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: CONSTRUCTOR DE PERFIL FALSO -->
+    <section id="tab-builder" class="tab-content hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8">
+        <div class="max-w-3xl">
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold mb-3">
+            <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
+            <span>Simulador Interactivo</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
+            Construyamos un Perfil "Casi Perfecto"
+          </h2>
+          <p class="mt-2 text-slate-300 text-sm sm:text-base">
+            Miren lo fácil que es crear la identidad de alguien en internet que parece súper amigable y de su misma edad. Seleccionen las piezas para armar este usuario.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- Builder Controls (Left - 7 cols) -->
+        <div class="lg:col-span-7 space-y-5">
+          <!-- Step 1: Avatar -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+            <label class="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center space-x-2">
+              <span>1. Elegir Foto Generada por IA</span>
+            </label>
+            <div class="grid grid-cols-4 gap-3" id="builder-avatar-select">
+              <!-- JS rendered -->
+            </div>
+          </div>
+
+          <!-- Step 2: Name & Age -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+            <label class="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center space-x-2">
+              <span>2. Seleccionar Identidad Simulada</span>
+            </label>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="builder-identity-select">
+              <!-- JS rendered -->
+            </div>
+          </div>
+
+          <!-- Step 3: Interests -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+            <label class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center space-x-2">
+              <span>3. Agregar Intereses Populares</span>
+            </label>
+            <div class="flex flex-wrap gap-2" id="builder-interests-select">
+              <!-- JS rendered -->
+            </div>
+          </div>
+
+          <!-- Step 4: Posts -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+            <label class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center space-x-2">
+              <span>4. Publicar Fotos de "Vida Cotidiana" (Internet)</span>
+            </label>
+            <div class="grid grid-cols-3 gap-2" id="builder-posts-select">
+              <!-- JS rendered -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Profile Preview (Right - 5 cols) -->
+        <div class="lg:col-span-5 sticky top-20">
+          <div class="bg-slate-900 border-2 border-purple-500/30 rounded-3xl p-5 shadow-2xl relative overflow-hidden glow-purple">
+
+            <!-- Credibility Bar -->
+            <div class="mb-5 bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
+              <div class="flex justify-between items-center mb-1.5">
+                <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                  <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+                  Nivel de Credibilidad Falsa:
+                </span>
+                <span id="credibility-percentage" class="text-sm font-extrabold text-emerald-400">30%</span>
+              </div>
+              <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden p-0.5">
+                <div id="credibility-bar" class="h-full bg-gradient-to-r from-amber-500 via-emerald-400 to-green-500 rounded-full transition-all duration-500" style="width: 30%"></div>
+              </div>
+              <p id="credibility-verdict" class="text-[11px] text-slate-400 mt-2">
+                Parece un perfil genérico. Agrega más detalles para volverlo "súper confiable".
+              </p>
+            </div>
+
+            <!-- Social Card Header -->
+            <div class="bg-slate-950 rounded-2xl p-4 border border-slate-800 text-center relative">
+              <div class="relative w-24 h-24 mx-auto mb-3">
+                <img id="preview-avatar" src="" alt="Avatar" class="w-full h-full object-cover rounded-full border-2 border-purple-500 shadow-md">
+                <span class="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 border-2 border-slate-950 rounded-full" title="En Línea"></span>
+              </div>
+              <h3 id="preview-name" class="text-lg font-bold text-white">Nombre Falso</h3>
+              <p id="preview-bio" class="text-xs text-purple-300 font-medium mt-0.5">Edad e info aquí</p>
+
+              <!-- Interests tags -->
+              <div id="preview-interests" class="flex flex-wrap justify-center gap-1.5 mt-3">
+                <!-- JS populated -->
+              </div>
+            </div>
+
+            <!-- Posts Grid -->
+            <div class="mt-4">
+              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Publicaciones en su Muro:</span>
+              <div id="preview-posts" class="grid grid-cols-3 gap-2">
+                <!-- JS populated -->
+              </div>
+            </div>
+
+            <!-- Reflection callout -->
+            <div id="profile-warning" class="mt-5 p-3.5 bg-red-950/40 border border-red-500/30 rounded-xl text-xs text-red-200 hidden">
+              <p class="font-bold flex items-center gap-1.5 text-red-400">
+                <i data-lucide="alert-octagon" class="w-4 h-4"></i>
+                ¡Atención a la Reflexión!
+              </p>
+              <p class="mt-1 text-[11px] text-slate-300">
+                Este perfil tiene fotos de IA, publicaciones robadas de internet y exactamente tus mismos gustos. <strong>¿Confiarías en él si te invita a jugar?</strong>
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: ANATOMÍA DEL ENGAÑO (ETAPAS) -->
+    <section id="tab-anatomy" class="tab-content hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8">
+        <div class="max-w-3xl">
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-400 text-xs font-semibold mb-3">
+            <i data-lucide="eye-off" class="w-3.5 h-3.5"></i>
+            <span>¿Cómo opera un engaño?</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
+            Las 4 Etapas del Grooming
+          </h2>
+          <p class="mt-2 text-slate-300 text-sm sm:text-base">
+            Un adulto malintencionado no se presenta diciendo la verdad. Usa un proceso lento y calculado para ganarse tu confianza. Haz clic en cada etapa para entender cómo funciona.
+          </p>
+        </div>
+      </div>
+
+      <!-- Step Timeline Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4" id="grooming-steps-container">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- Active Step Detail Display -->
+      <div id="step-detail-card" class="bg-slate-900 border-2 border-indigo-500/30 rounded-3xl p-6 sm:p-8 relative overflow-hidden transition-all duration-300">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- SECTION 4: TRIVIAS Y CASOS PRÁCTICOS -->
+    <section id="tab-quiz" class="tab-content hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8">
+        <div class="max-w-3xl">
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold mb-3">
+            <i data-lucide="help-circle" class="w-3.5 h-3.5"></i>
+            <span>Pon a prueba a la clase</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
+            ¿Qué harías en este caso?
+          </h2>
+          <p class="mt-2 text-slate-300 text-sm sm:text-base">
+            Analicen las siguientes situaciones reales que ocurren todos los días en juegos online y redes sociales. Voten la mejor respuesta.
+          </p>
+        </div>
+      </div>
+
+      <!-- Quiz Card Container -->
+      <div class="max-w-3xl mx-auto">
+        <div id="quiz-card" class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl relative">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Quiz Progress Indicators -->
+        <div class="flex justify-center items-center space-x-2 mt-6" id="quiz-dots">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Golden Rules Footer Banner -->
+  <footer class="bg-slate-900 border-t border-slate-800 py-6 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+          <i data-lucide="check-circle" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h4 class="text-sm font-bold text-white">Regla de Oro Digital:</h4>
+          <p class="text-xs text-slate-400">Si alguien que solo conoces en internet te incomoda o te pide secretos... ¡Háblalo de inmediato con un adulto de confianza!</p>
+        </div>
+      </div>
+      <div class="text-xs text-slate-500">
+        Material Didáctico para Escuelas • 11 a 12 Años
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* ===================================================================
+       AUDIO SYNTHESIZER (Web Audio API for pure self-contained audio)
+       =================================================================== */
+    let audioEnabled = true;
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSound(type) {
+      if (!audioEnabled || !audioCtx) return;
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      const now = audioCtx.currentTime;
+
+      if (type === 'click') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(800, now + 0.05);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+        osc.start(now);
+        osc.stop(now + 0.05);
+      } else if (type === 'reveal') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(200, now);
+        osc.frequency.exponentialRampToValueAtTime(600, now + 0.3);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.start(now);
+        osc.stop(now + 0.3);
+      } else if (type === 'success') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, now); // C5
+        osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+        osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+        osc.start(now);
+        osc.stop(now + 0.35);
+      } else if (type === 'error') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.linearRampToValueAtTime(110, now + 0.2);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc.start(now);
+        osc.stop(now + 0.25);
+      }
+    }
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      const icon = document.getElementById('audio-icon');
+      if (audioEnabled) {
+        icon.setAttribute('data-lucide', 'volume-2');
       } else {
-        setTimeout(()=>{
-          first.classList.remove('flipped'); first.textContent='?';
-          second.classList.remove('flipped'); second.textContent='?';
-          first=null; second=null; lock=false;
-        }, 800);
+        icon.setAttribute('data-lucide', 'volume-x');
       }
-    });
-    grid.appendChild(b);
-  });
-}
-
-/* ---------- BANCOS DE PREGUNTAS ---------- */
-const refranesBank = [
-  {p:'A caballo regalado', c:'no se le mira el diente', d:['se le pone montura','hay que devolverlo','no corre rápido']},
-  {p:'Más vale tarde', c:'que nunca', d:['que temprano','que nada','que mañana']},
-  {p:'Cría cuervos y', c:'te sacarán los ojos', d:['volarán lejos','cantarán feliz','te darán las gracias']},
-  {p:'En boca cerrada', c:'no entran moscas', d:['hay silencio','no hay palabras','no hay comida']},
-  {p:'No hay mal', c:'que dure cien años', d:['que no tenga solución','que venga solo','sin remedio']},
-  {p:'Perro que ladra', c:'no muerde', d:['está feliz','tiene hambre','corre rápido']},
-  {p:'Al mal tiempo', c:'buena cara', d:['buen paraguas','mala suerte','tormenta segura']},
-  {p:'Quien mucho abarca', c:'poco aprieta', d:['todo lo gana','nada suelta','triunfa siempre']},
-  {p:'Camarón que se duerme', c:'se lo lleva la corriente', d:['se despierta feliz','nada más rápido','vuelve a nacer']},
-  {p:'No por mucho madrugar', c:'amanece más temprano', d:['se descansa mejor','se llega más lejos','se gana más dinero']},
-  {p:'Dime con quién andas', c:'y te diré quién eres', d:['y te acompañaré','y seremos amigos','y viajaremos juntos']},
-  {p:'A palabras necias', c:'oídos sordos', d:['respuestas rápidas','buenas maneras','silencio eterno']},
-  {p:'El que a buen árbol se arrima', c:'buena sombra le cobija', d:['buena fruta recoge','se cansa menos','crece más alto']}
-];
-const antonimosBank = [
-  {w:'grande', c:'chico', d:['alto','rápido','contento']},
-  {w:'rápido', c:'lento', d:['fuerte','alto','claro']},
-  {w:'feliz', c:'triste', d:['cansado','nuevo','lejano']},
-  {w:'caro', c:'barato', d:['pesado','viejo','oscuro']},
-  {w:'fácil', c:'difícil', d:['lindo','largo','frío']},
-  {w:'lleno', c:'vacío', d:['limpio','claro','dulce']},
-  {w:'día', c:'noche', d:['tarde','mes','año']},
-  {w:'arriba', c:'abajo', d:['adelante','cerca','lejos']},
-  {w:'gordo', c:'flaco', d:['alto','fuerte','viejo']},
-  {w:'nuevo', c:'viejo', d:['grande','caro','limpio']}
-];
-const secuenciasBank = [
-  {seq:[2,4,6,8], c:10, d:[9,12,11]},
-  {seq:[5,10,15,20], c:25, d:[22,30,24]},
-  {seq:[1,3,5,7], c:9, d:[8,10,11]},
-  {seq:[10,20,30], c:40, d:[35,45,50]},
-  {seq:[3,6,9], c:12, d:[10,15,11]},
-  {seq:[20,18,16,14], c:12, d:[13,10,15]},
-  {seq:[100,90,80], c:70, d:[75,65,60]},
-  {seq:[1,4,7,10], c:13, d:[12,14,11]}
-];
-const triviaBank = [
-  {q:'¿Cuántos días tiene una semana?', c:'7', d:['5','6','8']},
-  {q:'¿Cuál es la capital de Argentina?', c:'Buenos Aires', d:['Córdoba','Rosario','Mendoza']},
-  {q:'¿Cuántos meses tiene el año?', c:'12', d:['10','11','13']},
-  {q:'¿Qué día viene después del lunes?', c:'Martes', d:['Miércoles','Domingo','Jueves']},
-  {q:'¿De qué color es el cielo en un día despejado?', c:'Celeste', d:['Verde','Gris','Amarillo']},
-  {q:'¿Cuántas patas tiene una mesa común?', c:'4', d:['2','3','6']},
-  {q:'¿Cuántos colores tiene el arcoíris?', c:'7', d:['5','6','9']},
-  {q:'¿En qué estación hace más frío?', c:'Invierno', d:['Verano','Primavera','Otoño']},
-  {q:'¿Cuántas horas tiene un día?', c:'24', d:['12','20','30']},
-  {q:'¿Qué animal dice "muu"?', c:'La vaca', d:['El perro','El gato','El caballo']},
-  {q:'¿Cuántos minutos tiene una hora?', c:'60', d:['30','100','24']},
-  {q:'¿En qué mes se celebra la Navidad?', c:'Diciembre', d:['Enero','Octubre','Julio']},
-  {q:'¿Cuál es el primer día de la semana en el calendario argentino?', c:'Lunes', d:['Domingo','Sábado','Viernes']}
-];
-const anagramBank = [
-  {w:'CASA', d:['COSA','SACO','VASO']},
-  {w:'FLOR', d:['FRIO','LIBRO','FELIZ']},
-  {w:'GATO', d:['TOGA','LOBO','PATO']},
-  {w:'LUNA', d:['LANA','LIMA','LUPA']},
-  {w:'MESA', d:['MASA','MISA','MOSCA']},
-  {w:'PLAYA', d:['PALYA','PALTA','PLATA']},
-  {w:'NOCHE', d:['COCHE','LECHE','NOCHA']}
-];
-
-const intrusoBank = [
-  {w:['MANZANA','PERA','BANANA','SILLA'], i:'SILLA'},
-  {w:['PERRO','GATO','VACA','MESA'], i:'MESA'},
-  {w:['ROJO','AZUL','VERDE','ZAPATO'], i:'ZAPATO'},
-  {w:['LUNES','MARTES','ABRIL','JUEVES'], i:'ABRIL'},
-  {w:['CUCHARA','TENEDOR','CUCHILLO','PELOTA'], i:'PELOTA'},
-  {w:['ENERO','FEBRERO','MARZO','LUNES'], i:'LUNES'},
-  {w:['ROSA','CLAVEL','TULIPÁN','ZANAHORIA'], i:'ZANAHORIA'},
-  {w:['GUITARRA','PIANO','VIOLÍN','MARTILLO'], i:'MARTILLO'}
-];
-
-function qCount(){ return appLevel==='facil' ? 4 : 6; }
-function toQ(prompt, correct, distractors){
-  const maxD = appLevel==='facil' ? 1 : 3;
-  const opts = shuffle([correct, ...sample(distractors, Math.min(maxD, distractors.length))]);
-  return {prompt, opts, answer: opts.indexOf(correct)};
-}
-function buildCalculo(){
-  const qs = [];
-  const n = qCount();
-  const topLimit = appLevel==='facil' ? 10 : 20;
-  for(let i=0;i<n;i++){
-    const a = Math.floor(Math.random()*topLimit)+1;
-    const b = Math.floor(Math.random()*topLimit)+1;
-    const isAdd = Math.random() > 0.4;
-    const answer = isAdd ? a+b : Math.max(a,b)-Math.min(a,b);
-    const text = (isAdd ? `${a} + ${b}` : `${Math.max(a,b)} - ${Math.min(a,b)}`) + ' = ?';
-    const wanted = appLevel==='facil' ? 2 : 4;
-    const opts = new Set([answer]);
-    while(opts.size < wanted){
-      const cand = answer + Math.floor(Math.random()*7)-3;
-      if(cand >= 0 && cand !== answer) opts.add(cand);
+      lucide.createIcons();
     }
-    const optsArr = shuffle([...opts].map(String));
-    qs.push({prompt:text, opts:optsArr, answer:optsArr.indexOf(String(answer))});
-  }
-  return qs;
-}
-function buildRefranes(){
-  return sample(refranesBank,qCount()).map(x=>toQ(x.p+'…', x.c, x.d));
-}
-function buildAntonimos(){
-  return sample(antonimosBank,qCount()).map(x=>toQ(`¿Cuál es el opuesto de "${x.w}"?`, x.c, x.d));
-}
-function buildSecuencias(){
-  return sample(secuenciasBank,qCount()).map(x=>toQ(x.seq.join(', ')+', ¿qué número sigue?', String(x.c), x.d.map(String)));
-}
-function buildTrivia(){
-  return sample(triviaBank,qCount()).map(x=>toQ(x.q, x.c, x.d));
-}
-function buildAnagramas(){
-  return sample(anagramBank,qCount()).map(x=>{
-    let scrambled;
-    do{ scrambled = shuffle(x.w.split('')).join(''); } while(scrambled === x.w);
-    return toQ('Ordená las letras: '+scrambled.split('').join(' '), x.w, x.d);
-  });
-}
 
-function buildIntruso(){
-  return sample(intrusoBank,qCount()).map(x=>{
-    const opts = appLevel==='facil' ? shuffle([x.i, ...sample(x.w.filter(w=>w!==x.i),2)]) : shuffle([...x.w]);
-    return {prompt:'¿Cuál de estas palabras no pertenece al grupo?', opts, answer: opts.indexOf(x.i)};
-  });
-}
-
-const pasosBank = [
-  {t:'Preparar café', steps:['Poner agua a calentar','Colocar el café en el filtro','Verter el agua caliente','Servir en la taza']},
-  {t:'Lavarse las manos', steps:['Abrir la canilla','Poner jabón','Frotar las manos','Enjuagar y secar']},
-  {t:'Enviar una carta', steps:['Escribir la carta','Meterla en el sobre','Pegar la estampilla','Llevarla al correo']},
-  {t:'Plantar una semilla', steps:['Preparar la tierra','Hacer un pozo','Colocar la semilla','Regar']},
-  {t:'Hacer la cama', steps:['Sacudir las sábanas','Estirar la sábana','Poner la colcha','Acomodar las almohadas']}
-];
-let pasosState = {task:null, order:[]};
-function initPasos(){
-  const task = pasosBank[Math.floor(Math.random()*pasosBank.length)];
-  let order;
-  do{ order = shuffle([...task.steps]); } while(order.join()===task.steps.join());
-  pasosState = {task, order};
-  document.getElementById('pasos-status').textContent = `Tarea: ${task.t}. Usá las flechas para ordenar los pasos correctamente.`;
-  renderPasos();
-}
-function renderPasos(){
-  const list = document.getElementById('pasos-list');
-  list.innerHTML = '';
-  pasosState.order.forEach((txt, i)=>{
-    const li = document.createElement('li');
-    li.className = 'pasos-item';
-    li.innerHTML = `<button class="move" ${i===0?'disabled':''} onclick="movePaso(${i},-1)">▲</button>
-      <button class="move" ${i===pasosState.order.length-1?'disabled':''} onclick="movePaso(${i},1)">▼</button>
-      <span class="txt">${txt}</span>`;
-    list.appendChild(li);
-  });
-}
-function movePaso(i, dir){
-  const o = pasosState.order;
-  const j = i+dir;
-  [o[i], o[j]] = [o[j], o[i]];
-  renderPasos();
-}
-function checkPasos(){
-  const items = document.querySelectorAll('#pasos-list .pasos-item');
-  let allOk = true;
-  pasosState.order.forEach((txt, i)=>{
-    const ok = txt === pasosState.task.steps[i];
-    items[i].classList.remove('ok','no');
-    items[i].classList.add(ok ? 'ok' : 'no');
-    if(!ok) allOk = false;
-  });
-  document.getElementById('pasos-status').textContent = allOk
-    ? '¡Perfecto, ese es el orden correcto! Tocá "Verificar orden" de nuevo para otra tarea.'
-    : 'Todavía no está en orden. Los pasos en verde están bien ubicados.';
-  if(allOk){
-    document.getElementById('pasos-check').textContent = 'Otra tarea';
-    document.getElementById('pasos-check').onclick = ()=>{ initPasos(); document.getElementById('pasos-check').textContent='Verificar orden'; document.getElementById('pasos-check').onclick=checkPasos; };
-  }
-}
-
-/* ---------- SECUENCIA DE COLORES (SIMON) ---------- */
-let simonState = {seq:[], step:0, round:0, playing:false};
-function simonRenderTiles(){
-  const grid = document.getElementById('simon-grid');
-  grid.innerHTML = '';
-  for(let i=0;i<4;i++){
-    const b = document.createElement('button');
-    b.className = 'simon-tile t'+i;
-    b.disabled = true;
-    b.onclick = ()=> simonHandleClick(i);
-    grid.appendChild(b);
-  }
-}
-simonRenderTiles();
-function simonStart(){
-  simonState = {seq:[Math.floor(Math.random()*4)], step:0, round:1, playing:true};
-  document.getElementById('simon-start').style.display='none';
-  simonPlaySequence();
-}
-function simonPlaySequence(){
-  document.getElementById('simon-status').textContent = `Ronda ${simonState.round}. Mirá bien la secuencia…`;
-  const tiles = document.querySelectorAll('.simon-tile');
-  tiles.forEach(t=>t.disabled=true);
-  let i = 0;
-  const speed = appLevel==='facil' ? 1000 : 700;
-  const timer = setInterval(()=>{
-    tiles.forEach(t=>t.classList.remove('lit'));
-    if(i > 0) tiles[simonState.seq[i-1]].classList.remove('lit');
-    if(i === simonState.seq.length){
-      clearInterval(timer);
-      simonState.step = 0;
-      tiles.forEach(t=>t.disabled=false);
-      document.getElementById('simon-status').textContent = 'Ahora repetí la secuencia tocando los colores en orden.';
-      return;
-    }
-    tiles[simonState.seq[i]].classList.add('lit');
-    setTimeout(()=>tiles[simonState.seq[i]].classList.remove('lit'), speed-200);
-    i++;
-  }, speed);
-}
-function simonHandleClick(i){
-  if(!simonState.playing) return;
-  if(i === simonState.seq[simonState.step]){
-    simonState.step++;
-    if(simonState.step === simonState.seq.length){
-      const maxRounds = appLevel==='facil' ? 6 : 8;
-      if(simonState.round >= maxRounds){
-        document.getElementById('simon-status').textContent = `¡Excelente memoria! Completaste las ${maxRounds} rondas 🎉`;
-        recordResult('colores', maxRounds, maxRounds);
-        simonState.playing = false;
-        document.getElementById('simon-start').style.display='block';
-        document.getElementById('simon-start').textContent='Jugar de nuevo';
-        document.getElementById('simon-start').onclick = simonStart;
-        return;
-      }
-      simonState.round++;
-      simonState.seq.push(Math.floor(Math.random()*4));
-      setTimeout(simonPlaySequence, 700);
-    }
-  } else {
-    document.getElementById('simon-status').textContent = `Llegaste a la ronda ${simonState.round}. ¡Probá de nuevo!`;
-    recordResult('colores', simonState.round-1, appLevel==='facil'?6:8);
-    simonState.playing = false;
-    document.querySelectorAll('.simon-tile').forEach(t=>t.disabled=true);
-    document.getElementById('simon-start').style.display='block';
-    document.getElementById('simon-start').textContent='Jugar de nuevo';
-    document.getElementById('simon-start').onclick = simonStart;
-  }
-}
-
-/* ---------- CERTIFICADO ---------- */
-function generarCertificado(){
-  const name = document.getElementById('cert-name').value.trim() || 'Participante';
-  document.getElementById('diploma-name').textContent = name;
-  document.getElementById('diploma-date').textContent = new Date().toLocaleDateString('es-AR', {year:'numeric', month:'long', day:'numeric'});
-  document.getElementById('diploma').style.display = 'block';
-  document.getElementById('print-btn').style.display = 'block';
-}
-
-const games = [
-  {key:'memoria', emoji:'🧠', title:'Memoria', desc:'Encontrá las parejas iguales', kind:'memoria'},
-  {key:'calculo', emoji:'➕', title:'Cálculo Mental', desc:'Resolvé cuentas simples', kind:'quiz', build:buildCalculo},
-  {key:'refranes', emoji:'💬', title:'Completá el Dicho', desc:'Elegí cómo termina', kind:'quiz', build:buildRefranes},
-  {key:'antonimos', emoji:'🔄', title:'Opuestos', desc:'Encontrá la palabra contraria', kind:'quiz', build:buildAntonimos},
-  {key:'secuencias', emoji:'🔢', title:'Secuencias', desc:'Descubrí qué número sigue', kind:'quiz', build:buildSecuencias},
-  {key:'intruso', emoji:'🔍', title:'Encontrá el Intruso', desc:'Descubrí cuál palabra no pertenece', kind:'quiz', build:buildIntruso},
-  {key:'anagramas', emoji:'🔤', title:'Ordená las Letras', desc:'Formá la palabra correcta', kind:'quiz', build:buildAnagramas},
-  {key:'trivia', emoji:'💡', title:'Sabías que…', desc:'Preguntas de cultura general', kind:'quiz', build:buildTrivia}
-];
-
-function renderMenu(){
-  const grid = document.getElementById('menu-grid');
-  grid.innerHTML = '';
-  games.forEach(g=>{
-    const b = document.createElement('button');
-    b.className = 'game-card';
-    b.innerHTML = `<span class="emoji">${g.emoji}</span><span class="txt"><strong>${g.title}</strong><span>${g.desc}</span></span>`;
-    b.onclick = ()=>{
-      if(g.kind === 'memoria'){ showScreen('memoria'); initMemoria(); }
-      else { startQuiz(g); }
+    /* ===================================================================
+       TEACHER NOTES & TAB SWITCHING LOGIC
+       =================================================================== */
+    const teacherNotesMap = {
+      'tab-challenge': 'Pide a la clase que vote a mano alzada antes de hacer clic en cada foto. Esto genera el impacto al revelar que NINGUNO existe.',
+      'tab-builder': 'Muestra cómo los intereses populares de la edad (Fortnite, Roblox) son usados como "anzuelo" para generar simpatía rápida.',
+      'tab-anatomy': 'Detente en la etapa "El Secreto". Enfatiza que los adultos que buscan hacer daño SIEMPRE piden secreto e incomodan.',
+      'tab-quiz': 'Fomente el debate en el aula. ¿Por qué la Opción A o B es peligrosa? Permite respuestas libres antes de revelar la correcta.'
     };
-    grid.appendChild(b);
-  });
-}
-renderMenu();
 
-/* ---------- MOTOR DE QUIZ GENERICO ---------- */
-let quizState = {game:null, qs:[], q:0, score:0};
-function startQuiz(game){
-  quizState = {game, qs: game.build(), q:0, score:0};
-  document.getElementById('quiz-title').textContent = game.title;
-  showScreen('quiz');
-  renderQuizQuestion();
-}
-function renderQuizQuestion(){
-  const panel = document.getElementById('quiz-panel');
-  if(quizState.q >= quizState.qs.length){
-    recordResult(quizState.game.key, quizState.score, quizState.qs.length);
-    panel.innerHTML = `<h2>${quizState.game.title}</h2><div class="final">
-      <p>Terminaste la ronda.</p>
-      <div class="big">${quizState.score} / ${quizState.qs.length}</div>
-      <button class="btn" onclick="startQuiz(quizState.game)">Jugar de nuevo</button>
-    </div>`;
-    return;
-  }
-  document.getElementById('quiz-feedback').textContent = '';
-  document.getElementById('quiz-status').textContent = `Pregunta ${quizState.q+1} de ${quizState.qs.length} — Aciertos: ${quizState.score}`;
-  const item = quizState.qs[quizState.q];
-  document.getElementById('quiz-prompt').textContent = item.prompt;
-  const optsEl = document.getElementById('quiz-opts');
-  optsEl.innerHTML = '';
-  item.opts.forEach((txt, idx)=>{
-    const b = document.createElement('button');
-    b.className = 'opt-btn';
-    b.textContent = txt;
-    b.onclick = ()=>{
-      document.querySelectorAll('#quiz-opts .opt-btn').forEach(x=>x.disabled=true);
-      const fb = document.getElementById('quiz-feedback');
-      if(idx === item.answer){
-        b.classList.add('correct');
-        fb.textContent = '¡Muy bien!'; fb.className = 'feedback good';
-        quizState.score++;
+    function toggleTeacherNotes() {
+      const notesEl = document.getElementById('teacher-notes');
+      notesEl.classList.toggle('hidden');
+      playSound('click');
+    }
+
+    function switchTab(tabId) {
+      playSound('click');
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+
+      // Update Nav Buttons
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        btn.classList.remove('bg-purple-600/90', 'text-white', 'shadow');
+        btn.classList.add('text-slate-400');
+      });
+
+      const activeBtn = document.getElementById(`btn-${tabId}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-purple-600/90', 'text-white', 'shadow');
+        activeBtn.classList.remove('text-slate-400');
+      }
+
+      // Update Teacher Notes text
+      document.getElementById('teacher-note-text').innerText = teacherNotesMap[tabId] || '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ===================================================================
+       SECTION 1: AI PHOTO CHALLENGE DATA & LOGIC
+       =================================================================== */
+    // High quality AI portraits (generated style placeholders/SVG art representation with stylized features)
+    const aiPhotosData = [
+      {
+        id: 1,
+        name: "Lukas_Gamer12",
+        age: "12 años",
+        img: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80",
+        tag: "Perfil de Discord",
+        clue: "Fondo desenfocado artificialmente y reflejo en los ojos ligeramente desalineado."
+      },
+      {
+        id: 2,
+        name: "Sofia_Skate22",
+        age: "11 años",
+        img: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80",
+        tag: "Perfil de TikTok",
+        clue: "Piel excesivamente suavizada sin poros visibles, típica de generadores de IA."
+      },
+      {
+        id: 3,
+        name: "Mateo_Futbol7",
+        age: "12 años",
+        img: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=600&q=80",
+        tag: "Perfil de Roblox",
+        clue: "El cabello tiene hebras que se borran con la ropa o la oreja."
+      },
+      {
+        id: 4,
+        name: "Valen_AnimePro",
+        age: "11 años",
+        img: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=600&q=80",
+        tag: "Perfil de Instagram",
+        clue: "Simetría facial matemáticamente perfecta que raramente existe en personas reales."
+      }
+    ];
+
+    let guessedPhotos = {};
+
+    function renderAiPhotoGrid() {
+      const container = document.getElementById('ai-photo-grid');
+      container.innerHTML = aiPhotosData.map(photo => `
+        <div id="photo-card-${photo.id}" class="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 flex flex-col">
+          <div class="relative h-64 overflow-hidden bg-slate-950">
+            <img src="${photo.img}" alt="${photo.name}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+            <span class="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md text-xs font-semibold px-2.5 py-1 rounded-full text-purple-300 border border-purple-500/20">
+              ${photo.tag}
+            </span>
+          </div>
+          <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+            <div>
+              <h3 class="font-bold text-white text-base">${photo.name}</h3>
+              <p class="text-xs text-slate-400">Dice tener ${photo.age}</p>
+            </div>
+
+            <!-- Choice Buttons -->
+            <div id="photo-actions-${photo.id}" class="grid grid-cols-2 gap-2">
+              <button onclick="guessPhoto(${photo.id}, 'REAL')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-emerald-600/30 hover:border-emerald-500 border border-slate-700 text-xs font-bold text-emerald-400 transition-colors">
+                ¿REAL?
+              </button>
+              <button onclick="guessPhoto(${photo.id}, 'FALSO')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-red-600/30 hover:border-red-500 border border-slate-700 text-xs font-bold text-red-400 transition-colors">
+                ¿FALSO?
+              </button>
+            </div>
+
+            <!-- Result Overlay (hidden at start) -->
+            <div id="photo-result-${photo.id}" class="hidden p-3 rounded-2xl bg-purple-950/50 border border-purple-500/40 text-xs space-y-1">
+              <div class="flex items-center space-x-1.5 text-purple-300 font-bold">
+                <i data-lucide="bot" class="w-4 h-4"></i>
+                <span>¡CREADO POR IA!</span>
+              </div>
+              <p class="text-[11px] text-slate-300">${photo.clue}</p>
+            </div>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function guessPhoto(id, guess) {
+      playSound('reveal');
+      guessedPhotos[id] = guess;
+
+      const actionsEl = document.getElementById(`photo-actions-${id}`);
+      const resultEl = document.getElementById(`photo-result-${id}`);
+      const cardEl = document.getElementById(`photo-card-${id}`);
+
+      actionsEl.classList.add('hidden');
+      resultEl.classList.remove('hidden');
+      cardEl.classList.add('border-purple-500', 'glow-purple');
+
+      // Check if all answered
+      if (Object.keys(guessedPhotos).length === aiPhotosData.length) {
+        setTimeout(() => {
+          document.getElementById('ai-reveal-card').classList.remove('hidden');
+          playSound('success');
+          confetti({
+            particleCount: 70,
+            spread: 60,
+            origin: { y: 0.6 }
+          });
+        }, 400);
+      }
+    }
+
+    /* ===================================================================
+       SECTION 2: PROFILE BUILDER SIMULATOR LOGIC
+       =================================================================== */
+    const avatars = [
+      { id: 1, url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80' },
+      { id: 2, url: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=300&q=80' },
+      { id: 3, url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=300&q=80' },
+      { id: 4, url: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=300&q=80' }
+    ];
+
+    const identities = [
+      { name: 'Santi_Gamer', age: '12 años • Séptimo Grado' },
+      { name: 'Nico_ProPlayer', age: '11 años • Le gusta el fútbol' },
+      { name: 'Cami_Vibes', age: '12 años • Ama el anime' },
+      { name: 'Tomi_Fortnite', age: '11 años • Busca grupo' }
+    ];
+
+    const availableInterests = [
+      '🎮 Fortnite', '🧱 Roblox', '📱 TikTok', '⚽ Fútbol', 
+      '🎨 Dibujo', '🎧 Bizarrap', '🐱 Gatos', '🍿 Streaming'
+    ];
+
+    const availablePosts = [
+      { id: 1, title: 'Mi Setup', img: 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?auto=format&fit=crop&w=300&q=80' },
+      { id: 2, title: 'Mi Perro', img: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=300&q=80' },
+      { id: 3, title: 'Merienda', img: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=300&q=80' }
+    ];
+
+    let currentAvatar = avatars[0].url;
+    let currentIdentity = identities[0];
+    let selectedInterests = ['🎮 Fortnite', '🧱 Roblox'];
+    let selectedPosts = [availablePosts[0]];
+
+    function renderBuilderControls() {
+      // Avatars
+      document.getElementById('builder-avatar-select').innerHTML = avatars.map((av, idx) => `
+        <button onclick="setBuilderAvatar('${av.url}', ${idx})" class="avatar-option relative rounded-xl overflow-hidden border-2 transition-all ${currentAvatar === av.url ? 'border-purple-500 scale-105' : 'border-slate-800 opacity-60'}">
+          <img src="${av.url}" class="w-full h-16 object-cover">
+        </button>
+      `).join('');
+
+      // Identities
+      document.getElementById('builder-identity-select').innerHTML = identities.map((id, idx) => `
+        <button onclick="setBuilderIdentity(${idx})" class="p-2.5 rounded-xl bg-slate-950 border text-left text-xs transition-all ${currentIdentity.name === id.name ? 'border-cyan-500 text-cyan-300 font-bold' : 'border-slate-800 text-slate-400'}">
+          <div class="truncate">${id.name}</div>
+          <div class="text-[10px] text-slate-500">${id.age}</div>
+        </button>
+      `).join('');
+
+      // Interests
+      document.getElementById('builder-interests-select').innerHTML = availableInterests.map((interest) => {
+        const isSelected = selectedInterests.includes(interest);
+        return `
+          <button onclick="toggleInterest('${interest}')" class="px-3 py-1.5 rounded-xl text-xs font-medium transition-all border ${isSelected ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300' : 'bg-slate-950 border-slate-800 text-slate-400'}">
+            ${interest}
+          </button>
+        `;
+      }).join('');
+
+      // Posts
+      document.getElementById('builder-posts-select').innerHTML = availablePosts.map((post) => {
+        const isSelected = selectedPosts.some(p => p.id === post.id);
+        return `
+          <button onclick="togglePost(${post.id})" class="p-1.5 rounded-xl bg-slate-950 border transition-all text-center ${isSelected ? 'border-amber-500 opacity-100' : 'border-slate-800 opacity-40'}">
+            <img src="${post.img}" class="w-full h-12 object-cover rounded-lg mb-1">
+            <span class="text-[10px] text-slate-300 font-medium">${post.title}</span>
+          </button>
+        `;
+      }).join('');
+
+      updateBuilderPreview();
+    }
+
+    function setBuilderAvatar(url) {
+      playSound('click');
+      currentAvatar = url;
+      renderBuilderControls();
+    }
+
+    function setBuilderIdentity(idx) {
+      playSound('click');
+      currentIdentity = identities[idx];
+      renderBuilderControls();
+    }
+
+    function toggleInterest(interest) {
+      playSound('click');
+      if (selectedInterests.includes(interest)) {
+        selectedInterests = selectedInterests.filter(i => i !== interest);
       } else {
-        b.classList.add('wrong');
-        fb.textContent = `La respuesta era: ${item.opts[item.answer]}`; fb.className = 'feedback bad';
+        selectedInterests.push(interest);
       }
-      quizState.q++;
-      setTimeout(renderQuizQuestion, 1300);
+      renderBuilderControls();
+    }
+
+    function togglePost(postId) {
+      playSound('click');
+      const exists = selectedPosts.some(p => p.id === postId);
+      if (exists) {
+        selectedPosts = selectedPosts.filter(p => p.id !== postId);
+      } else {
+        const postObj = availablePosts.find(p => p.id === postId);
+        selectedPosts.push(postObj);
+      }
+      renderBuilderControls();
+    }
+
+    function updateBuilderPreview() {
+      document.getElementById('preview-avatar').src = currentAvatar;
+      document.getElementById('preview-name').innerText = currentIdentity.name;
+      document.getElementById('preview-bio').innerText = currentIdentity.age;
+
+      document.getElementById('preview-interests').innerHTML = selectedInterests.map(i => `
+        <span class="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-semibold">${i}</span>
+      `).join('');
+
+      document.getElementById('preview-posts').innerHTML = selectedPosts.map(p => `
+        <div class="rounded-lg overflow-hidden bg-slate-950 border border-slate-800">
+          <img src="${p.img}" class="w-full h-14 object-cover">
+          <div class="p-1 text-[9px] text-center text-slate-400 truncate">${p.title}</div>
+        </div>
+      `).join('');
+
+      // Credibility calculation
+      let score = 25; // base
+      score += selectedInterests.length * 12;
+      score += selectedPosts.length * 15;
+      score = Math.min(score, 100);
+
+      document.getElementById('credibility-percentage').innerText = `${score}%`;
+      document.getElementById('credibility-bar').style.width = `${score}%`;
+
+      const verdictEl = document.getElementById('credibility-verdict');
+      const warningEl = document.getElementById('profile-warning');
+
+      if (score > 70) {
+        verdictEl.innerText = "¡Súper Confiable! A los ojos de cualquiera, parece un chico o chica de la escuela.";
+        verdictEl.className = "text-[11px] text-emerald-400 font-bold mt-2";
+        warningEl.classList.remove('hidden');
+      } else {
+        verdictEl.innerText = "Agrega más intereses y fotos del muro para ver cómo gana credibilidad.";
+        verdictEl.className = "text-[11px] text-slate-400 mt-2";
+        warningEl.classList.add('hidden');
+      }
+    }
+
+    /* ===================================================================
+       SECTION 3: ANATOMY OF DECEPTION DATA & LOGIC
+       =================================================================== */
+    const groomingSteps = [
+      {
+        step: 1,
+        title: "1. La Trampa de la Simpatía",
+        subtitle: "Intereses Comunes",
+        icon: "smile",
+        color: "text-cyan-400",
+        borderColor: "border-cyan-500",
+        summary: "Se presenta con tus mismos gustos (videojuegos, música, TikTok) para ganarse tu atención.",
+        detailTitle: "Etapa 1: Contacto e Intereses Compartidos",
+        detailText: "El adulto malintencionado no dice su edad real ni muestra sus intenciones. Se crea un avatar amigable y empieza a hablar de los juegos del momento, haciéndose pasar por alguien de 11 o 12 años que 'te entiende mejor que nadie'.",
+        exampleQuote: "“¡Hola! Vi que juegas Roblox y necesitas equipo, yo también tengo 12 años, ¿jugamos juntos?”"
+      },
+      {
+        step: 2,
+        title: "2. Ganar Confianza",
+        subtitle: "Regalos y Escucha",
+        icon: "gift",
+        color: "text-purple-400",
+        borderColor: "border-purple-500",
+        summary: "Te hace cumplidos, te regala objetos virtuales o pases de batalla para que lo sientas un amigo.",
+        detailTitle: "Etapa 2: Construcción de Confianza y Regalos",
+        detailText: "Empieza a hablar todos los días contigo. Te escucha cuando estás triste, te dice que eres super divertido/a y te regala 'Monedas de juego', 'Robux' o 'Skins' de Fortnite para crear una deuda de gratitud.",
+        exampleQuote: "“Te regale este pase de batalla porque eres mi mejor amigo/a de internet, no se lo des a nadie más.”"
+      },
+      {
+        step: 3,
+        title: "3. El Aislamiento",
+        subtitle: "Petición de Secretos",
+        icon: "lock",
+        color: "text-amber-400",
+        borderColor: "border-amber-500",
+        summary: "Pide que la amistad sea 'un secreto' y te sugiere no contarle a tus padres ni amigos.",
+        detailTitle: "Etapa 3: El Secreto y Alejamiento",
+        detailText: "Aquí empieza el peligro real. Intenta alejarte de la supervisión. Te pide cambiar a un chat privado (como WhatsApp o Discord personal) y exige que 'sea nuestro secreto porque los adultos no entienden nuestra amistad'.",
+        exampleQuote: "“No le cuentes a tus papás que hablamos por aquí, se van a enojar y no nos van a dejar jugar juntos.”"
+      },
+      {
+        step: 4,
+        title: "4. La Presión / Chantaje",
+        subtitle: "Petición Privada",
+        icon: "alert-octagon",
+        color: "text-red-400",
+        borderColor: "border-red-500",
+        summary: "Pide fotos personales o datos sensibles, amenazando con contar el secreto si no lo haces.",
+        detailTitle: "Etapa 4: La Petición Incomoda y Chantaje",
+        detailText: "Una vez que tiene el secreto guardado, empieza a pedir cosas privadas (fotos de tu cara, dirección, fotos sin remera). Si te niegas, intenta hacerte sentir culpable o amenaza con publicar tus datos.",
+        exampleQuote: "“Si no me mandas la foto, no te regalo más Robux y le voy a decir a todos que me mentiste.”"
+      }
+    ];
+
+    let activeGroomingStep = 1;
+
+    function renderGroomingSteps() {
+      const container = document.getElementById('grooming-steps-container');
+      container.innerHTML = groomingSteps.map(st => {
+        const isActive = st.step === activeGroomingStep;
+        return `
+          <button onclick="selectGroomingStep(${st.step})" class="p-5 rounded-2xl bg-slate-900 border-2 transition-all duration-300 text-left flex flex-col justify-between space-y-4 ${isActive ? `${st.borderColor} bg-slate-800/80 shadow-lg` : 'border-slate-800 opacity-70 hover:opacity-100'}">
+            <div class="flex items-center justify-between">
+              <span class="p-2 rounded-xl bg-slate-950 border border-slate-800 ${st.color}">
+                <i data-lucide="${st.icon}" class="w-5 h-5"></i>
+              </span>
+              <span class="text-xs font-bold text-slate-500">Paso ${st.step}</span>
+            </div>
+            <div>
+              <h3 class="font-bold text-white text-sm">${st.title}</h3>
+              <p class="text-[11px] text-slate-400 mt-1">${st.summary}</p>
+            </div>
+          </button>
+        `;
+      }).join('');
+
+      renderGroomingDetail();
+      lucide.createIcons();
+    }
+
+    function selectGroomingStep(stepNum) {
+      playSound('click');
+      activeGroomingStep = stepNum;
+      renderGroomingSteps();
+    }
+
+    function renderGroomingDetail() {
+      const data = groomingSteps.find(s => s.step === activeGroomingStep);
+      const detailCard = document.getElementById('step-detail-card');
+
+      detailCard.innerHTML = `
+        <div class="space-y-4">
+          <div class="flex items-center space-x-3">
+            <span class="p-3 rounded-2xl bg-slate-950 border border-slate-800 ${data.color}">
+              <i data-lucide="${data.icon}" class="w-6 h-6"></i>
+            </span>
+            <div>
+              <h3 class="text-xl font-extrabold text-white">${data.detailTitle}</h3>
+              <p class="text-xs ${data.color} font-semibold">${data.subtitle}</p>
+            </div>
+          </div>
+
+          <p class="text-slate-300 text-sm leading-relaxed">
+            ${data.detailText}
+          </p>
+
+          <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Frase típica de esta etapa:</span>
+            <p class="text-xs italic text-amber-300 font-medium">
+              ${data.exampleQuote}
+            </p>
+          </div>
+
+          <div class="pt-2 flex justify-between items-center text-xs text-slate-400">
+            <span>Haz clic en los otros pasos para ver la evolución del engaño.</span>
+            ${activeGroomingStep < 4 ? `
+              <button onclick="selectGroomingStep(${activeGroomingStep + 1})" class="text-indigo-400 hover:text-indigo-300 font-bold flex items-center gap-1">
+                Ver siguiente paso <i data-lucide="chevron-right" class="w-4 h-4"></i>
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    /* ===================================================================
+       SECTION 4: QUIZ & SCENARIOS DATA & LOGIC
+       =================================================================== */
+    const quizScenarios = [
+      {
+        id: 1,
+        platform: "Roblox / Discord",
+        title: "Caso 1: Un regalo incondicional",
+        situation: "Un jugador que conociste hace 3 días en un servidor te dice que le caes muy bien y te regala 1.000 Robux. Luego te pide tu número de celular para 'hablar por WhatsApp a solas'.",
+        options: [
+          {
+            letter: "A",
+            text: "Le doy mi número. Al final fue súper generoso regalandome los Robux.",
+            correct: false,
+            explanation: "¡Peligro! Usar regalos virtuales es la estrategia principal para generar una falsa obligación moral de dar datos personales."
+          },
+          {
+            letter: "B",
+            text: "Acepto los Robux en el juego, pero NO le doy mi número ni cambio de plataforma.",
+            correct: true,
+            explanation: "¡Correcto! Nunca debes mudar la conversación a redes privadas con desconocidos, por más amables o generosos que parezcan."
+          },
+          {
+            letter: "C",
+            text: "Le paso el número de un amigo para que lo contacte a él.",
+            correct: false,
+            explanation: "No expongas a tus amigos a riesgos con desconocidos de internet."
+          }
+        ]
+      },
+      {
+        id: 2,
+        platform: "Instagram / TikTok",
+        title: "Caso 2: El 'Amigo de tu amigo'",
+        situation: "Te llega una solicitud de un perfil con foto de un chico de 12 años muy simpático. Tiene 500 seguidores y en su bio dice que va a una escuela cercana.",
+        options: [
+          {
+            letter: "A",
+            text: "Lo acepto de inmediato. Como tiene muchos seguidores y vive cerca, es de confianza.",
+            correct: false,
+            explanation: "Recuerda: Los perfiles falsos pueden comprar seguidores o inventar escuelas en la bio fácilmente."
+          },
+          {
+            letter: "B",
+            text: "Pregunto en la vida real a mis compañeros si realmente lo conocen antes de aceptar.",
+            correct: true,
+            explanation: "¡Excelente! La verificación en el mundo físico es la mejor manera de desmantelar un perfil falso."
+          }
+        ]
+      },
+      {
+        id: 3,
+        platform: "Chat de Videojuegos",
+        title: "Caso 3: La Petición del Secreto",
+        situation: "Alguien con quien juegas seguido te dice: 'Tengo un secreto que solo te puedo contar a ti, pero prométeme que no le vas a decir a tus papás o me van a banear'.",
+        options: [
+          {
+            letter: "A",
+            text: "Prometo guardar el secreto. Los amigos guardan secretos.",
+            correct: false,
+            explanation: "Cuidado: Ningún amigo real de internet te pedirá ocultarle cosas a tus padres."
+          },
+          {
+            letter: "B",
+            text: "Me da desconfianza. Le cuento de inmediato a mi mamá, papá o docente de confianza.",
+            correct: true,
+            explanation: "¡Perfecto! Un secreto que produce incomodidad o que pide ser ocultado a los padres debe contarse SIEMPRE."
+          }
+        ]
+      }
+    ];
+
+    let currentQuizIndex = 0;
+    let quizAnswered = false;
+
+    function renderQuizCard() {
+      const q = quizScenarios[currentQuizIndex];
+      const container = document.getElementById('quiz-card');
+
+      container.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex items-center justify-between">
+            <span class="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold">
+              ${q.platform}
+            </span>
+            <span class="text-xs font-semibold text-slate-500">
+              Escenario ${currentQuizIndex + 1} de ${quizScenarios.length}
+            </span>
+          </div>
+
+          <div>
+            <h3 class="text-xl font-bold text-white">${q.title}</h3>
+            <p class="mt-2 text-slate-300 text-sm sm:text-base leading-relaxed bg-slate-950 p-4 rounded-2xl border border-slate-800">
+              “${q.situation}”
+            </p>
+          </div>
+
+          <div class="space-y-3" id="quiz-options-list">
+            ${q.options.map((opt, idx) => `
+              <button onclick="selectQuizOption(${idx})" class="w-full p-4 rounded-2xl bg-slate-950 border border-slate-800 hover:border-amber-500/50 text-left text-xs sm:text-sm font-medium text-slate-200 transition-all flex items-start space-x-3 group">
+                <span class="w-6 h-6 rounded-lg bg-slate-800 group-hover:bg-amber-500 group-hover:text-slate-950 text-slate-300 flex items-center justify-center font-bold text-xs flex-shrink-0 transition-colors">
+                  ${opt.letter}
+                </span>
+                <span class="mt-0.5">${opt.text}</span>
+              </button>
+            `).join('')}
+          </div>
+
+          <div id="quiz-feedback" class="hidden p-4 rounded-2xl border text-xs sm:text-sm space-y-2">
+            <!-- Feedback filled by JS -->
+          </div>
+
+          <div class="flex justify-between items-center pt-2">
+            <button onclick="prevQuiz()" ${currentQuizIndex === 0 ? 'disabled class="opacity-30 cursor-not-allowed text-xs text-slate-500"' : 'class="text-xs text-slate-400 hover:text-white font-bold flex items-center gap-1"'}>
+              <i data-lucide="arrow-left" class="w-4 h-4"></i> Anterior
+            </button>
+            <button id="btn-next-quiz" onclick="nextQuiz()" class="hidden px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-transform active:scale-95">
+              <span>Siguiente Situación</span>
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      `;
+
+      renderQuizDots();
+      lucide.createIcons();
+    }
+
+    function selectQuizOption(optIdx) {
+      if (quizAnswered) return;
+      quizAnswered = true;
+
+      const q = quizScenarios[currentQuizIndex];
+      const selected = q.options[optIdx];
+      const feedbackEl = document.getElementById('quiz-feedback');
+      const nextBtn = document.getElementById('btn-next-quiz');
+
+      if (selected.correct) {
+        playSound('success');
+        feedbackEl.className = "p-4 rounded-2xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-200 text-xs sm:text-sm space-y-1 animate-fadeIn";
+        feedbackEl.innerHTML = `
+          <div class="font-bold flex items-center gap-1.5 text-emerald-400">
+            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+            ¡Respuesta Correcta y Segura!
+          </div>
+          <p class="text-slate-300 text-xs mt-1">${selected.explanation}</p>
+        `;
+      } else {
+        playSound('error');
+        feedbackEl.className = "p-4 rounded-2xl bg-red-950/60 border border-red-500/40 text-red-200 text-xs sm:text-sm space-y-1 animate-fadeIn";
+        feedbackEl.innerHTML = `
+          <div class="font-bold flex items-center gap-1.5 text-red-400">
+            <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+            Opción Riesgosa
+          </div>
+          <p class="text-slate-300 text-xs mt-1">${selected.explanation}</p>
+        `;
+      }
+
+      feedbackEl.classList.remove('hidden');
+      nextBtn.classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function nextQuiz() {
+      playSound('click');
+      if (currentQuizIndex < quizScenarios.length - 1) {
+        currentQuizIndex++;
+        quizAnswered = false;
+        renderQuizCard();
+      } else {
+        // Quiz completed
+        alertQuizComplete();
+      }
+    }
+
+    function prevQuiz() {
+      playSound('click');
+      if (currentQuizIndex > 0) {
+        currentQuizIndex--;
+        quizAnswered = false;
+        renderQuizCard();
+      }
+    }
+
+    function renderQuizDots() {
+      const container = document.getElementById('quiz-dots');
+      container.innerHTML = quizScenarios.map((_, idx) => `
+        <span class="w-2.5 h-2.5 rounded-full transition-all ${idx === currentQuizIndex ? 'bg-amber-400 w-6' : 'bg-slate-800'}"></span>
+      `).join('');
+    }
+
+    function alertQuizComplete() {
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+      const container = document.getElementById('quiz-card');
+      container.innerHTML = `
+        <div class="text-center py-8 space-y-4">
+          <div class="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto border border-emerald-500/30">
+            <i data-lucide="award" class="w-8 h-8"></i>
+          </div>
+          <h3 class="text-2xl font-extrabold text-white">¡Completaste el Taller de Seguridad!</h3>
+          <p class="text-slate-300 text-sm max-w-md mx-auto">
+            Ahora tú y tus compañeros tienen las herramientas para detectar perfiles falsos con IA y prevenir situaciones de riesgo en internet.
+          </p>
+          <button onclick="currentQuizIndex = 0; quizAnswered = false; renderQuizCard();" class="px-6 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition-colors">
+            Reiniciar Casos de Práctica
+          </button>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    /* ===================================================================
+       INITIALIZATION ON LOAD
+       =================================================================== */
+    window.onload = function() {
+      lucide.createIcons();
+      renderAiPhotoGrid();
+      renderBuilderControls();
+      renderGroomingSteps();
+      renderQuizCard();
     };
-    optsEl.appendChild(b);
-  });
-}
-</script>
+  </script>
 </body>
 </html>
